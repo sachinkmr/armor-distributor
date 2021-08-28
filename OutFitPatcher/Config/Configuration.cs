@@ -23,6 +23,7 @@ namespace OutFitPatcher.Config
         // Properties
         internal static MutableLoadOrderLinkCache<ISkyrimMod, ISkyrimModGetter>? Cache;
         internal static LeveledItem.Flag LeveledListFlag;
+        internal static LeveledNpc.Flag LeveledNpcFlag;
         internal static ConcurrentDictionary<string, ISkyrimMod>? Patches;
         internal static  IPatcherState<ISkyrimMod, ISkyrimModGetter>? State;
 
@@ -38,6 +39,7 @@ namespace OutFitPatcher.Config
             Cache = state.LoadOrder.ToMutableLinkCache();
             
             LeveledListFlag = LeveledItem.Flag.CalculateForEachItemInCount.Or(LeveledItem.Flag.CalculateFromAllLevelsLessThanOrEqualPlayer);
+            LeveledNpcFlag = LeveledNpc.Flag.CalculateForEachItemInCount.Or(LeveledNpc.Flag.CalculateFromAllLevelsLessThanOrEqualPlayer);
 
             // Loading user defined data
             configFile = Path.Combine(state.ExtraSettingsDataPath, "settings.json");

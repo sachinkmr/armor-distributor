@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace OutFitPatcher.Utils
 {
@@ -38,6 +39,28 @@ namespace OutFitPatcher.Utils
             lls.TryAdd(editorID, lvli.FormKey);
             return lvli;
         }
+
+        public static LeveledNpc CreateLeveledList(ISkyrimMod PatchMod, IEnumerable<ILeveledNpcGetter> items, string editorID, short level, LeveledNpc.Flag flag)
+        {
+            if (lls.ContainsKey(editorID))
+            {
+                Logger.DebugFormat("Record already Exists [{0}]. mod has/have same editor ID ", editorID);
+                if (PatchMod.ToImmutableLinkCache().TryResolve<LeveledNpc>(lls[editorID], out var ll))
+                    if (ll.ContainedFormLinks.Select(x => x.FormKey).Except(items.Select(x => x.FormKey)).Count() == 0)
+                        return ll;
+                    else
+                        editorID += "_dup";
+            }
+
+            LeveledNpc lvli = PatchMod.LeveledNpcs.AddNew(editorID);
+            lvli.Entries = new ();
+            lvli.Flags = flag;
+
+            AddItemsToLeveledList(PatchMod, lvli, items, 1);
+            lls.TryAdd(editorID, lvli.FormKey);
+            return lvli;
+        }
+
 
         public static LeveledItem CreateLeveledList(ISkyrimMod PatchMod, IEnumerable<IFormLink<IItemGetter>> items, string editorID, short level, LeveledItem.Flag flag)
         {
@@ -78,6 +101,23 @@ namespace OutFitPatcher.Utils
             }
         }
 
+        public static void AddItemsToLeveledList(ISkyrimMod patch, LeveledNpc lvli, IEnumerable<ILeveledNpcGetter> items, short level)
+        {
+            LeveledNpc? sLL = null;
+            bool hasMultiItems = items.Count() + lvli.Entries.Count > 250;
+            if (!hasMultiItems) sLL = lvli;
+
+            for (int i = 0, j = 0; i < items.Count(); i++)
+            {
+                if (hasMultiItems && i % 250 == 0)
+                {
+                    sLL = CreateLeveledList(patch, new List<ILeveledNpcGetter>(), lvli.EditorID + (++j), 1, Configuration.LeveledNpcFlag);
+                    AddItemToLeveledList(lvli, sLL, 1);
+                }
+                AddItemToLeveledList(sLL, items.ElementAtOrDefault(i), 1);
+            }
+        }
+
         public static void AddItemsToLeveledList(ISkyrimMod patch, LeveledItem lvli, IEnumerable<IFormLink<IItemGetter>> items, short level)
         {
             LeveledItem? sLL = null;
@@ -100,6 +140,17 @@ namespace OutFitPatcher.Utils
         {
             LeveledItemEntry entry = new LeveledItemEntry();
             LeveledItemEntryData data = new LeveledItemEntryData();
+            data.Reference = item.AsLink();
+            data.Level = level;
+            data.Count = 1;
+            entry.Data = data;
+            lvli.Entries.Add(entry);
+        }
+
+        public static void AddItemToLeveledList(LeveledNpc lvli, ILeveledNpcGetter item, short level)
+        {
+            LeveledNpcEntry entry = new ();
+            LeveledNpcEntryData data = new ();
             data.Reference = item.AsLink();
             data.Level = level;
             data.Count = 1;
@@ -154,6 +205,26 @@ namespace OutFitPatcher.Utils
 
         }
 
+
+        public static void AddEntriesToLeveledList(ISkyrimMod patch, LeveledNpc lvli, IEnumerable<LeveledNpcEntry> items)
+        {
+            if (items.Count() < 255) items.ForEach(item => lvli.Entries.Add(item));
+            else
+            {
+                LeveledNpc? sLL = null;
+                for (int i = 0; i < items.Count(); i++)
+                {
+                    if (i % 250 == 0)
+                    {
+                        sLL = CreateLeveledList(patch, new List<ILeveledNpcGetter>(), lvli.EditorID + i, 1, Configuration.LeveledNpcFlag);
+                        AddItemToLeveledList(lvli, sLL, 1);
+                    }
+                    sLL.Entries.Add(items.ElementAtOrDefault(i));
+                }
+            }
+
+        }
+
         private static void GetArmorList(ILeveledItemGetter ll, List<IArmorGetter> armors, HashSet<FormKey> processed)
         {
             ILinkCache cache = Configuration.Cache;
@@ -168,6 +239,11 @@ namespace OutFitPatcher.Utils
                         GetArmorList(lv, armors, processed);
                 }
             });
+        }
+
+        public static string getLLGender(ILeveledItemGetter ll) {
+            var matches = Regex.Matches(ll.EditorID, Configuration.Patcher.LeveledListPrefix + "[C|M|F|U]_");
+            return matches.Any() ? matches.First().Value.Replace(Configuration.Patcher.LeveledListPrefix, "").Replace("_", "") : "U";
         }
     }
 }

@@ -9,7 +9,7 @@
       <WarningsAsErrors></WarningsAsErrors>
       <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
       <WarningLevel>5</WarningLevel>
-      <NoWarn>1701;1702;CA1416;CS8602;CS8600;CS8604;CS8620;CS8619;CS8603</NoWarn>
+      <NoWarn>1701;1702;CA1416;CS8602;CS8600;CS8604;CS8620;CS8619;CS8603;CS8631;CS8634</NoWarn>
       <DefineConstants>DEBUG;TRACE</DefineConstants>
       <DebugType>full</DebugType>
       <DebugSymbols>true</DebugSymbols>
@@ -39,12 +39,21 @@
       <Content Include="Data\config\patcher-settings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <Content Include="Data\settings - Copy.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
       <Content Include="Data\settings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Update="Data\scripts\mannequinactivatorscript.pex">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Data\scripts\source\mannequinactivatorscript.psc">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Data\scripts\source\_slpnpc.psc">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Data\scripts\_slpnpc.pex">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="log4net.config">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>

@@ -17,6 +17,8 @@ using System.Text.RegularExpressions;
 using System;
 using OutFitPatcher.Bodyslide;
 using Mutagen.Bethesda.Plugins.Cache;
+using Mutagen.Bethesda.FormKeys.SkyrimSE;
+using OutFitPatcher.NPC;
 
 namespace OutFitPatcher
 {
@@ -32,7 +34,7 @@ namespace OutFitPatcher
 
             return await SynthesisPipeline.Instance
                 .AddPatch<ISkyrimMod, ISkyrimModGetter>(RunPacher)
-                .SetTypicalOpen(GameRelease.SkyrimSE, "ZZZ Outfit Bashed Patch.esp")
+                .SetTypicalOpen(GameRelease.SkyrimSE, "ZZZ Patcher - Bashed Patch.esp")
                 .Run(args);
         }
 
@@ -42,29 +44,28 @@ namespace OutFitPatcher
             Init(state);
 
             if (!RequirementsFullfilled(state)) return;
-            Morphs.create();
+            // Morphs.create();
 
             //Distribute Jewellaries and Sleeping outfits, and outfits
             //JewelaryManager.ProcessAndDistributeJewelary(state);
             //new SleepingOutfitManager(state).ProcessSlepingOutfits();
-            new OutfitManager(state).Process();
+            //new OutfitManager(state).Process();
 
-            // Little house keeping 
-            //CreateBashPatchForLVLI(state);
-            
+            //// Little house keeping 
+            //PatchHighPolyHead(state);
+            CreateBashPatchForLVLI(state);
+            CreateBashPatchForLVLN(state);
+
             // Saving all the patches to disk
             Logger.InfoFormat("Saving all the patches to disk.....");
-            Patches.TryAdd(State.PatchMod.ModKey.Name, State.PatchMod);
+            Patches.TryAdd(state.PatchMod.ModKey.FileName.String, state.PatchMod);
             Patches.Values.ForEach(p => FileUtils.SaveMod(state, p));
         }
 
         private static void CreateBashPatchForLVLI(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             Logger.InfoFormat("Creating Leveled List bash patch....");
-            ILinkCache cache = Cache;
-            Logger.InfoFormat("Creating Leveled List bash patch....");
-            
-            foreach (ILeveledItemGetter lvli in cache.PriorityOrder
+            foreach (ILeveledItemGetter lvli in Cache.WrappedImmutableCache.PriorityOrder
                 .WinningOverrides<ILeveledItemGetter>())
             {
                 List<ILeveledItemGetter> lvlis = Cache.ResolveAll<ILeveledItemGetter>(lvli.FormKey).ToList();
@@ -74,6 +75,25 @@ namespace OutFitPatcher
                     lvlis.ForEach(x => entries.AddRange(x.Entries.EmptyIfNull().Select(entry => entry.DeepCopy())));
                     LeveledItem lvl = state.PatchMod.LeveledItems.GetOrAddAsOverride(lvlis.First());
                     lvl.Entries = new ExtendedList<LeveledItemEntry>();
+                    OutfitUtils.AddEntriesToLeveledList(state.PatchMod, lvl, entries.Distinct());
+                }
+            }
+            Logger.InfoFormat("Leveled List Bash Patch Created...\n\n");
+        }
+
+        private static void CreateBashPatchForLVLN(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
+        {
+            Logger.InfoFormat("Creating Leveled List bash patch....");
+            foreach (ILeveledNpcGetter lvli in Cache.WrappedImmutableCache.PriorityOrder
+                .WinningOverrides<ILeveledNpcGetter>())
+            {
+                List<ILeveledNpcGetter> lvlis = Cache.ResolveAll<ILeveledNpcGetter>(lvli.FormKey).ToList();
+                if (lvlis.Count > 1)
+                {
+                    List<LeveledNpcEntry> entries = new();
+                    lvlis.ForEach(x => entries.AddRange(x.Entries.EmptyIfNull().Select(entry => entry.DeepCopy())));
+                    LeveledNpc lvl = state.PatchMod.LeveledNpcs.GetOrAddAsOverride(lvlis.First());
+                    lvl.Entries = new ();
                     OutfitUtils.AddEntriesToLeveledList(state.PatchMod, lvl, entries.Distinct());
                 }
             }
@@ -96,14 +116,41 @@ namespace OutFitPatcher
                 .Where(x => x.ModKey != state.PatchMod.ModKey)
                 .Select(x => x.ModKey))
             {
-                if (modKey.FileName.String.Contains(Configuration.Patcher.PatcherSuffix))
+                if (modKey.FileName.String.StartsWith(Patcher.PatcherPrefix))
                 {
                     Logger.ErrorFormat("Disable or delete mod to continue: " + modKey.FileName);
                     patchExists = true;
                 }
             }
+
+            // Copying the scripts
+            var src = Path.Combine(state.ExtraSettingsDataPath, "Scripts");
+            var des = Path.Combine(state.DataFolderPath, "Scripts");
+            FileUtils.CopyDirectory(src, des);
+
             Logger.DebugFormat("All the requirements are validated...");
             return !patchExists;
         }
+        
+        private static void PatchHighPolyHead(IPatcherState<ISkyrimMod, ISkyrimModGetter> state) {
+            foreach (var npc in state.LoadOrder.PriorityOrder
+                .WinningOverrides<INpcGetter>())
+            {
+                var contxt = Cache.ResolveAllContexts<INpc, INpcGetter>(npc.FormKey);
+                string esps = "High Poly NPC";
+                ISkyrimMod patchedMod = FileUtils.GetOrAddPatch(Patcher.PatcherPrefix + "High Poly NPC.esp");
+
+                var first = contxt.First();
+                var mods = contxt.Where(x => x.ModKey.FileName.String.Contains(esps));
+                if (mods.Any() && mods.First().ModKey != first.ModKey) {
+                    var winner = contxt.First().Record;
+                    var looser = mods.First().Record;
+                    var newNPC = patchedMod.Npcs.GetOrAddAsOverride(winner);
+                    newNPC.HeadParts.Clear();
+                    newNPC.HeadParts.AddRange(looser.HeadParts);
+                    Logger.InfoFormat("Patched Brown Head for: " + newNPC.EditorID);
+                }
+            }
+        } 
     }
 }

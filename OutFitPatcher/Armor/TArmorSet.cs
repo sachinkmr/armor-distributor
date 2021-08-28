@@ -23,9 +23,13 @@ namespace OutFitPatcher.Armor
         public HashSet<FormKey> Weapons { get; }
 
         public TArmor Body { get; }
+        public string Gender { get; }
         public string Material { get; }
         public string Type { get; }
         public string Prefix { get; }
+
+        public bool hasShield;
+        public bool hasHalmet;
 
         private FormKey LLFormKey = FormKey.Null;
         private FormKey OutfitFormKey = FormKey.Null;
@@ -39,10 +43,11 @@ namespace OutFitPatcher.Armor
             Weapons = new();
             Material = body.Material;
             Type = body.Type;
+            Gender = body.Gender;
             Prefix = Configuration.Patcher.LeveledListPrefix + Body.Gender + "_" + Body.EditorID;
             Armors.Add(body);
             if (!hasPatch)
-                Patch = FileUtils.GetOrAddPatch(Body.FormKey.ModKey.FileName, true);
+                Patch = FileUtils.GetOrAddPatch(Body.FormKey.ModKey.FileName+" - LVLI.esp");
         }
 
         public TArmorSet(IArmorGetter body, bool hasPatch = false)
@@ -149,9 +154,9 @@ namespace OutFitPatcher.Armor
         {
             ConcurrentDictionary<string, ConcurrentDictionary<string, TArmor>> matchedArmors1 = new();
             IEnumerable<TArmor> armorParts = others
-                .Where(x => (ArmorUtils.GetMaterial(x).Equals(Material)
-                || x.HasKeyword(Skyrim.Keyword.ArmorJewelry))
-                && Type.Equals(ArmorUtils.GetArmorType(x)))
+                .Where(x => Type.Equals(ArmorUtils.GetArmorType(x))
+                    && (ArmorUtils.GetMaterial(x).Equals(Material)
+                    || x.HasKeyword(Skyrim.Keyword.ArmorJewelry)))
                 .Select(x => new TArmor(x));
             if (!addAll)
             {

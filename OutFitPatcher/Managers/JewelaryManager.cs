@@ -18,11 +18,13 @@ namespace OutFitPatcher.Managers
     public class JewelaryManager
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(JewelaryManager));
+
         public static void ProcessAndDistributeJewelary(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
+            if (!Configuration.User.JewelryMods.Any()) return;
             Logger.InfoFormat("Creating Leveled list for Jewelary.....");
-            ISkyrimMod patchedMod = FileUtils.GetOrAddPatch("ZZZ Jewelry");
-            Dictionary<string, HashSet<IArmorGetter>> jewelleries = new Dictionary<string, HashSet<IArmorGetter>>();
+            ISkyrimMod patchedMod = FileUtils.GetOrAddPatch(Configuration.Patcher.PatcherPrefix+"Jewelry.esp");
+            Dictionary<string, HashSet<IArmorGetter>> jewelleries = new();
 
             // Adding all the patches to load order
             foreach (IModListing<ISkyrimModGetter> modlist in state.LoadOrder.PriorityOrder
@@ -75,8 +77,7 @@ namespace OutFitPatcher.Managers
 
             // Distributing jewelry
             string jPrefix = Configuration.Patcher.LeveledListPrefix + "_LL_Jewels_";
-            foreach (ILeveledItemGetter ll in state.LoadOrder.PriorityOrder
-                .WinningOverrides<ILeveledItemGetter>()
+            foreach (ILeveledItemGetter ll in mod.LeveledItems
                 .Where(x => x.EditorID.Contains(jPrefix)))
             {
                 string eid = ll.EditorID;

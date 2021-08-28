@@ -16,16 +16,21 @@ namespace OutFitPatcher.Armor
     {
         public string Name { get; }
 
-        public FormKey LLKey=FormKey.Null;
-        public FormKey OutfitKey = FormKey.Null;
+        public Dictionary<string, FormKey> GenderOutfit;
 
         public ConcurrentBag<TArmorSet> Armors { get; }
+
         public ConcurrentDictionary<FormKey, string> Outfits { get; }
 
         public TArmorGroupable(string name) {
             Name = name;
             Armors = new();
             Outfits = new();
+            GenderOutfit=new();
+            GenderOutfit.Add("M", FormKey.Null);
+            GenderOutfit.Add("C", FormKey.Null);
+            GenderOutfit.Add("F", FormKey.Null);
+            GenderOutfit.Add("U", FormKey.Null);
         }
 
         public void AddArmorSet(TArmorSet set)
@@ -58,22 +63,23 @@ namespace OutFitPatcher.Armor
             });
         }
 
-
-        public FormKey GetLeveledListUsingArmorSets(ISkyrimMod PatchMod, bool createLL = false)
-        {
-            LeveledItem ll = null;
-            if (LLKey == FormKey.Null || createLL)
-            {
-                var list = Armors.Select(a => a.CreateLeveledList().AsLink<IItemGetter>());
-                ll = OutfitUtils.CreateLeveledList(PatchMod, list, Configuration.Patcher.LeveledListPrefix + Name, 1, Configuration.LeveledListFlag);
-                LLKey = ll.FormKey;
-            }
-            return LLKey;
+        public void CreateGroupOutfits(ISkyrimMod? PatchedMod) {
+            foreach (var g in GenderOutfit.Keys) {
+                var lls = GetLeveledListsUsingArmorSets(g);
+                if (lls.Any()) {
+                    LeveledItem mLLC = OutfitUtils.CreateLeveledList(PatchedMod, lls, "mLL_" + Name + "_" + g, 1, Configuration.LeveledListFlag);
+                    Outfit gOTFT = PatchedMod.Outfits.AddNew(Name + "_Outfit_"+g);
+                    gOTFT.Items = new();
+                    gOTFT.Items.Add(mLLC);
+                    GenderOutfit[g] = gOTFT.FormKey;
+                }                
+            }           
         }
 
-        public IEnumerable<FormLink<IItemGetter>> GetLeveledListsUsingArmorSets()
+        public IEnumerable<FormLink<IItemGetter>> GetLeveledListsUsingArmorSets(string gender="C")
         {
-            return Armors.Select(a => a.CreateLeveledList().AsLink<IItemGetter>()); ;
+            return Armors.Where(x=>x.Gender== gender)
+                .Select(a => a.CreateLeveledList().AsLink<IItemGetter>()); ;
         }
 
         public override string? ToString()

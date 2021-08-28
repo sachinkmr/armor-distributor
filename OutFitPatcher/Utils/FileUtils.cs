@@ -59,25 +59,34 @@ namespace OutFitPatcher.Utils
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
-        public static ISkyrimMod GetOrAddPatch(string EspName, bool forLVLI = false)
+        public static ISkyrimMod GetOrAddPatch(string espName)
         {
-            if (!(EspName.Contains(Patcher.PatcherSuffix) || EspName.Contains(Patcher.PatcherLLSuffix)))
-            {
-                var suffix = forLVLI ? Patcher.PatcherLLSuffix : Patcher.PatcherSuffix;
-                EspName = EspName.Replace(".esp", "") + suffix;
-            }
-
-            ModKey modKey = ModKey.FromNameAndExtension(EspName);
+            espName = espName.EndsWith(".esp") ? espName : espName + ".esp";
+            ModKey modKey = ModKey.FromNameAndExtension(espName);
             if (Patches.ContainsKey(modKey.FileName))
                 return Patches.GetValueOrDefault(modKey.FileName);
 
             ISkyrimMod patch = new SkyrimMod(modKey, SkyrimRelease.SkyrimSE);
             Patches.TryAdd(modKey.FileName, patch);
             Cache.Add(patch);
+            
             //var x = ModListing<ISkyrimModGetter>.CreateEnabled(patch.ModKey);
             //State.LoadOrder.Add((IModListing<ISkyrimModGetter>)x, State.LoadOrder.Count - 2);
 
             return patch;
+        }
+
+        public static void CopyDirectory(string sourcePath, string targetPath)
+        {
+            //Now Create all of the directories
+            Directory.CreateDirectory(targetPath);
+            foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories)) {
+                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
+            }
+
+            //Copy all the files & Replaces any files with the same name
+            foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+                File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
         }
     }
 }

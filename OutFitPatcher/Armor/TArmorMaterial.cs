@@ -16,7 +16,7 @@ namespace OutFitPatcher.Armor
     public class TArmorMaterial: TArmorGroupable
     {
 
-        public TArmorMaterial(string material): base(material)
+        public TArmorMaterial(string material) : base(material)
         {            
         }
 

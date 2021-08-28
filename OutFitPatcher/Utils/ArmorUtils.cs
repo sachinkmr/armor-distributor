@@ -48,19 +48,26 @@ namespace OutFitPatcher.Utils
 
         private static string GetClothingType(IArmorGetter armor)
         {
-            // MAtching Clothing na Robes types
+            // MAtching Clothing and Robes types
             string eid = armor.EditorID;
             string name = armor.Name == null || armor.Name.String == null ? "" : armor.Name.String;
-            var matches = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, armor.EditorID);
-            //IEnumerable<string> matches = Configuration.Patcher.RobesType.Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
-            //|| Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
-            //if (!matches.Any())
-            //    matches = Configuration.Patcher.ClothesType
-            //        .Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
-            //        || Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
-            if (matches.Any()) return matches.First();
+            var matches = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, armor.EditorID, name);
+            if (!matches.Any())
+                matches = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, name);
+
+            if (!matches.Any())
+                matches = Configuration.Patcher.RobesType.Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
+            || Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
+            
+            if (!matches.Any())
+                matches = Configuration.Patcher.ClothesType
+                    .Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
+                    || Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
+            if (matches.Any()) 
+                return matches.First();
+            
             var type = "Unknown";
-            if (!armor.ObjectEffect.IsNull) type= "Robes";
+            //if (!armor.ObjectEffect.IsNull) type= "Robes";
             //type=armor.Value > 3 ? "Fine Clothes" : "Poor Clothes";
             Logger.DebugFormat("Unknown: {0}, {1} | Assigned: {2} ", eid, name, type);
             return type;
@@ -142,7 +149,7 @@ namespace OutFitPatcher.Utils
 
             if (IsCloth(armor))
                 return Regex.IsMatch(armor.EditorID, Configuration.Patcher.ArmorTypeRegex["Wizard"], RegexOptions.IgnoreCase)
-                    || !armor.ObjectEffect.IsNull ? TArmorType.Robes : TArmorType.Clothes;
+                    || !armor.ObjectEffect.IsNull ? TArmorType.Wizard : TArmorType.Cloth;
             return TArmorType.Unknown;
         }
 
@@ -203,9 +210,8 @@ namespace OutFitPatcher.Utils
 
         public static string GetOutfitArmorType(string outfitEID)
         {
-            var m = Configuration.Patcher.ArmorTypeRegex
-                .Where(x => Regex.IsMatch(outfitEID, x.Value, RegexOptions.IgnoreCase));
-            return !m.Any() ? "" : m.First().Key;
+            var m = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.ArmorTypeRegex, outfitEID).ToList();            
+            return !m.Any() ? "" : m.First();
         }
 
         public static Comparer<TArmor> GetArmorComparer(string fullName)
@@ -233,6 +239,20 @@ namespace OutFitPatcher.Utils
         public static string ResolveItemName(IWeaponGetter item)
         {
             return item.Name == null || item.Name.String.Length < 1 ? item.EditorID : item.Name.ToString();
+        }
+
+        public static void AddArmorsToMannequin(IEnumerable<TArmorSet> armorSets)
+        {
+            Logger.InfoFormat("Distributing Armor sets to Mannequins...");
+
+            ISkyrimMod patch = FileUtils.GetOrAddPatch(Configuration.Patcher.PatcherPrefix + "Mannequins.esp");
+            var form = patch.FormLists != null && patch.FormLists.Any()
+                ? patch.FormLists.First() : patch.FormLists.AddNew("MannequinsArmorForm");
+
+            armorSets = armorSets.Distinct();
+            var lls = armorSets.Select(set => set.CreateLeveledList().AsLink<IItemGetter>());
+            form.Items.AddRange(lls);
+            Logger.InfoFormat("Distributed Armor sets to Mannequins...\n\n");
         }
 
     }

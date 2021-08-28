@@ -25,8 +25,7 @@ namespace OutFitPatcher.Config
         public string? DividableFactions;
 
         // Prefixes and sufixes
-        public string? PatcherSuffix;
-        public string? PatcherLLSuffix;
+        public string? PatcherPrefix;
         public string? LeveledListPrefix;
         public string? SLPLeveledListPrefix;
         public string? OutfitPatchedKeywordEID;
@@ -39,7 +38,6 @@ namespace OutFitPatcher.Config
         public List<string> RobesType = new();
         public List<string> Masters = new();
 
-        //public Dictionary<string, string> FactionsRegex = new();
         public Dictionary<string, string> OutfitRegex = new();
         public Dictionary<string, string> ArmorTypeRegex = new();
         public List<string> MaleSleepingWears = new();

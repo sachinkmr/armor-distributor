@@ -1,7 +1,9 @@
 ﻿using Mutagen.Bethesda;
+using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
+using OutFitPatcher.Armor;
 using OutFitPatcher.Config;
 using OutFitPatcher.Utils;
 using System;
@@ -20,8 +22,8 @@ namespace OutFitPatcher.NPC
         public List<string> NameGroup;  // ClassGrp, [ClassEID]
         public string? ClassEID;
         public string? NpcName;
-        public string? Eid;
-        public string NPCKey;
+        public string? EditorID;
+        public FormKey FormKey;
         public string ClassKey;
         public string ArmorType="";
         public string Identifier = "";
@@ -30,46 +32,52 @@ namespace OutFitPatcher.NPC
         public TNPC(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, INpcGetter npc)
         {
             NpcName = npc.Name == null ? "" : npc.Name.String;
-            NPCKey = npc.FormKey.ToString();
-            Eid = npc.EditorID;
+            FormKey = npc.FormKey;
+            EditorID = npc.EditorID;
 
             ClassKey = npc.Class.FormKey.ToString();
             var npcClass = state.LinkCache.Resolve<IClassGetter>(npc.Class.FormKey);
             ClassEID = npcClass.EditorID;
 
             ClassGroup = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, ClassEID).ToList();
-            NameGroup = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, Eid).ToList();
+            NameGroup = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, EditorID).ToList();
             FactionGroup = new();
+            var cache = state.LoadOrder.ToMutableLinkCache();
             npc.Factions.ForEach(facs =>
             {
-                var fac = facs.Faction.Resolve(state.LinkCache).EditorID;
-                if (HelperUtils.IsValidFaction(fac)) {
+                if (facs.Faction.TryResolve<IFactionGetter>(cache, out var faction) && HelperUtils.IsValidFaction(faction.EditorID)) {
+                    var fac = faction.EditorID;
                     var list = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, fac);
                     list.ForEach(l => FactionGroup[l] = fac);
                 }                
             });
 
-            Identifier = FactionGroup.Count() > 0 ? FactionGroup.Keys.Last()
-                            : ClassGroup.Count() > 0 ? ClassGroup.First()
-                            : NameGroup.Count() > 0 ? NameGroup.First() 
-                            : ClassEID== "Citizen"? "CitizenRich":"";
+            var lowPriortyFactions = new string[] { "Bandit", "Merchant" };
 
-            string facregex = Configuration.Patcher.DividableFactions;
-            Match matcher = Regex.Match(Identifier, facregex, RegexOptions.IgnoreCase);
-            if (matcher.Success)
-            {
-                var faction = matcher.Value;
-                var list = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.ArmorTypeRegex, ClassEID)
-                    .Select(x => x.Replace(faction, "")).EmptyIfNull();
-                ArmorType = list.Count() == 0 ? "" : list.First();
+            Identifier = FactionGroup.Count() > 0 && !FactionGroup.Keys.Contains("Bandit")? FactionGroup.Keys.Last()
+                            : ClassGroup.Count() > 0 ? ClassGroup.Last()
+                            : NameGroup.Count() > 0 ? NameGroup.Last() 
+                            : ClassEID== "Citizen"? "CitizenRich":"Unknown";
+            
+            if (Regex.IsMatch(Identifier, Configuration.Patcher.DividableFactions, RegexOptions.IgnoreCase)) {
+                Skill[]? skills = new Skill[] { Skill.HeavyArmor, Skill.LightArmor, Skill.Conjuration, Skill.Alteration,Skill.Destruction, Skill.Illusion, Skill.Restoration };
+                var  allSkills = npc.PlayerSkills.SkillValues.Where(x => skills.Contains(x.Key));
+                var maxSkill = allSkills.OrderBy(x => x.Value)
+                    .ToDictionary(x => x.Key, x => x.Value)
+                    .Last().Key;
+
+                ArmorType = maxSkill == Skill.HeavyArmor ? TArmorType.Heavy
+                    : maxSkill == Skill.LightArmor ? TArmorType.Light
+                    : TArmorType.Wizard;
+                Identifier += ArmorType;
             }
-
         }
 
         public override string? ToString()
         {
-            return Eid;
+            return string.Format("NPCKey: {0} | Factions: {1} | Classes: {2} | NameGroup: {3} | Id: {4}",
+                FormKey.ToString(), string.Join(", ",FactionGroup.Keys), string.Join(", ", ClassGroup), 
+                string.Join(", ", NameGroup), Identifier); 
         }
-
     }
 }

@@ -24,7 +24,7 @@ namespace OutFitPatcher.Managers
     public class SleepingOutfitManager
     {
         private readonly Random Random = new();
-        private readonly ISkyrimMod PatchedMod;
+        private ISkyrimMod? PatchedMod;
         private readonly HashSet<FormKey> SleepingLLs;
         //private readonly IEnumerable<IItemGetter> LowerGarments;
         private readonly IPatcherState<ISkyrimMod, ISkyrimModGetter> State;
@@ -35,15 +35,13 @@ namespace OutFitPatcher.Managers
         {
             this.State = State;
             SleepingLLs = new();
-            PatchedMod = FileUtils.GetOrAddPatch("ZZZ SleepTight");
-            //LowerGarments = State.LoadOrder.PriorityOrder
-            //    .Where(x => Configuration.User.SleepingOutfitMods.Contains(x.ModKey.FileName))
-            //    .WinningOverrides<IArmorGetter>()
-            //    .Where(x => ArmorUtils.IsLowerArmor(x));
         }
 
         public void ProcessSlepingOutfits()
         {
+            if (!User.SleepingOutfitMods.Any()) return;
+            
+            PatchedMod = FileUtils.GetOrAddPatch(Patcher.PatcherPrefix + "SleepTight.esp");
             string sleeptight = Path.Combine(State.DataFolderPath, "SleepTight.esp");
             if (ModKey.TryFromNameAndExtension("SleepTight.esp", out var modKey) && State.LoadOrder.ContainsKey(modKey))
             {
@@ -78,7 +76,7 @@ namespace OutFitPatcher.Managers
         {
             // For each armor mod getting armor records
             foreach (IModListing<ISkyrimModGetter> modlist in State.LoadOrder.PriorityOrder
-                .Where(x => (Configuration.User.SleepingOutfitMods.Contains(x.ModKey.FileName))))
+                .Where(x => (User.SleepingOutfitMods.Contains(x.ModKey.FileName))))
             {
                 ISkyrimModGetter mod = modlist.Mod;
                 string modName = mod.ModKey.FileName;

@@ -10,8 +10,8 @@ namespace OutFitPatcher.Armor
     {
         public static readonly string Heavy = "Heavy";
         public static readonly string Light = "Light";
-        public static readonly string Robes = "Wizard";
-        public static readonly string Clothes = "Clothes";
+        public static readonly string Wizard = "Wizard";
+        public static readonly string Cloth = "Cloth";
         public static readonly string Jewelry = "Jewelry";
         public static readonly string Shield = "Shield";
         public static readonly string Helmet = "Helmet";
