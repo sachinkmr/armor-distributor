@@ -30,7 +30,7 @@ namespace OutFitPatcher.Utils
 
         public static bool IsValidNPC(INpcGetter npc) {
             return !Configuration.NPCs2Skip.Contains(npc.FormKey) 
-                && isValidActorType(npc)
+                && !IsChild(npc) && isValidActorType(npc)
                 && (Regex.IsMatch(npc.EditorID, Configuration.Patcher.ValidNpcRegex, RegexOptions.IgnoreCase)
                     || !Regex.IsMatch(npc.EditorID, Configuration.Patcher.InvalidNpcRegex, RegexOptions.IgnoreCase));
         }
@@ -42,16 +42,16 @@ namespace OutFitPatcher.Utils
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeDaedra)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeGhost)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypePrisoner)) 
-                && (!r.HasKeyword(Skyrim.Keyword.ActorTypeAnimal)
-                || !r.HasKeyword(Skyrim.Keyword.ActorTypeCow)
-                || !r.HasKeyword(Skyrim.Keyword.ActorTypeCreature)
-                || !r.HasKeyword(Skyrim.Keyword.ActorTypeDragon)
-                || !r.HasKeyword(Skyrim.Keyword.ActorTypeDwarven)
-                || !r.HasKeyword(Skyrim.Keyword.ActorTypeFamiliar)
-                || !r.HasKeyword(Skyrim.Keyword.ActorTypeGiant)
-                || !r.HasKeyword(Skyrim.Keyword.ActorTypeHorse)
-                || !r.HasKeyword(Skyrim.Keyword.ActorTypeTroll)
-                || !r.HasKeyword(Skyrim.Keyword.ActorTypeUndead));               
+                && !(r.HasKeyword(Skyrim.Keyword.ActorTypeAnimal)
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeCow)
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeCreature)
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeDragon)
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeDwarven)
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeFamiliar)
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeGiant)
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeHorse)
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeTroll)
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeUndead));               
         }
 
         public static bool IsGuard(INpcGetter npc) {

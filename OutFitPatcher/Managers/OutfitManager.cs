@@ -55,7 +55,6 @@ namespace OutFitPatcher.Managers
            var outfits= GetPatchableOutfits();
             
             GetOutfitsForMaterial(outfits);
-            //GetOutfitsForFactions();
 
             GenerateArmorMeshesData();
             ProcessArmorsForOutfits();
@@ -114,6 +113,7 @@ namespace OutFitPatcher.Managers
                         eidTypes.ForEach(eidType=> {
                             var k = DividableFactions.Contains(f.ToLower()) ? f + eidType : f;
                             Materials.GetOrAdd(k, new TArmorMaterial(k)).AddOutfit(outfit);
+                            //Materials.GetOrAdd(k, new TArmorMaterial(k));
                         });                        
                     });
                 }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 10 });
@@ -365,7 +365,7 @@ namespace OutFitPatcher.Managers
                 .Where(c => !c.DefaultOutfit.IsNull
                     && !outfit2Skip.Contains(c.DefaultOutfit.FormKey)
                     && NPCUtils.IsValidNPC(c)
-                    && !NPCUtils.IsChild(c)
+                    && !NPCUtils.IsChild(c) && !NPCUtils.IsGuard(c)
                     && Cache.Resolve<IRaceGetter>(c.Race.FormKey).HasKeyword(Skyrim.Keyword.ActorTypeNPC))
                 .Select(x=> new TNPC(State, x))) {
                 

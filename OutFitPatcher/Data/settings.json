@@ -323,6 +323,9 @@
     "Nun Knight Armor.esp": [ "Warrior" ],
     "Collygon - Monk Series.esp": [ "Sorcerer", "Mage" ],
     "[Odd] Sakura.esp": [ "Sorcerer", "Mage" ],
+    "Dark Dreams.esp": [ "Sorcerer", "Mage" ],
+    "BDOR Enslar.esp": [ "Companion"],
+    "[Kirax] BDOR Marod Star.esp": [ "Sorcerer", "Mage" ],
     "zzMaidOutfits.esp": [ "Servent" ]
   }
 }

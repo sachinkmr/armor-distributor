@@ -54,7 +54,9 @@ namespace OutFitPatcher.NPC
 
             var lowPriortyFactions = new string[] { "Bandit", "Merchant" };
 
-            Identifier = FactionGroup.Count() > 0 && !FactionGroup.Keys.Contains("Bandit")? FactionGroup.Keys.Last()
+            var commonInFactionClass = FactionGroup.Keys.Intersect(ClassGroup).ToList();
+            Identifier = commonInFactionClass.Any()? commonInFactionClass.First()
+                            : FactionGroup.Any()&&!FactionGroup.Keys.Contains("Daedra") && !FactionGroup.Keys.Contains("Bandit")? FactionGroup.Keys.Last()
                             : ClassGroup.Count() > 0 ? ClassGroup.Last()
                             : NameGroup.Count() > 0 ? NameGroup.Last() 
                             : ClassEID== "Citizen"? "CitizenRich":"Unknown";

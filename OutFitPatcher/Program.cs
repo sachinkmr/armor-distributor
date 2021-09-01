@@ -12,12 +12,7 @@ using log4net;
 using System.Reflection;
 using static OutFitPatcher.Config.Configuration;
 using OutFitPatcher.Managers;
-using OutFitPatcher.Config;
-using System.Text.RegularExpressions;
 using System;
-using OutFitPatcher.Bodyslide;
-using Mutagen.Bethesda.Plugins.Cache;
-using Mutagen.Bethesda.FormKeys.SkyrimSE;
 using OutFitPatcher.NPC;
 
 namespace OutFitPatcher
@@ -47,12 +42,12 @@ namespace OutFitPatcher
             // Morphs.create();
 
             //Distribute Jewellaries and Sleeping outfits, and outfits
-            //JewelaryManager.ProcessAndDistributeJewelary(state);
-            //new SleepingOutfitManager(state).ProcessSlepingOutfits();
-            //new OutfitManager(state).Process();
+            JewelaryManager.ProcessAndDistributeJewelary(state);
+            new SleepingOutfitManager(state).ProcessSlepingOutfits();
+            new OutfitManager(state).Process();
 
             //// Little house keeping 
-            //PatchHighPolyHead(state);
+            PatchHighPolyHead(state);
             CreateBashPatchForLVLI(state);
             CreateBashPatchForLVLN(state);
 
