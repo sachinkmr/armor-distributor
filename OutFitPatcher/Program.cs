@@ -14,6 +14,7 @@ using static OutFitPatcher.Config.Configuration;
 using OutFitPatcher.Managers;
 using System;
 using OutFitPatcher.NPC;
+using Mutagen.Bethesda.Plugins;
 
 namespace OutFitPatcher
 {
@@ -29,32 +30,47 @@ namespace OutFitPatcher
 
             return await SynthesisPipeline.Instance
                 .AddPatch<ISkyrimMod, ISkyrimModGetter>(RunPacher)
-                .SetTypicalOpen(GameRelease.SkyrimSE, "ZZZ Patcher - Bashed Patch.esp")
+                .SetTypicalOpen(GameRelease.SkyrimSE, "ZZZ Patcher1 - Bashed Patch.esp")
                 .Run(args);
         }
 
         private static void RunPacher(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-            // Reading and Parsing setting file
-            Init(state);
+            WarmupAll.Init();
+            //foreach (var mod in state.LoadOrder.PriorityOrder.Select(x => x.Mod))
+            //{
+            //    Console.WriteLine("Processing Mod: " + mod.ModKey.FileName);
+            //    ReferenceCaching.BuildReferenceCache(mod);
+            //}
+            //Dictionary<FormKey, List<FormKey>> a = ReferenceCaching.LoadReferenceCache();
 
-            if (!RequirementsFullfilled(state)) return;
-            // Morphs.create();
 
-            //Distribute Jewellaries and Sleeping outfits, and outfits
-            JewelaryManager.ProcessAndDistributeJewelary(state);
-            new SleepingOutfitManager(state).ProcessSlepingOutfits();
-            new OutfitManager(state).Process();
+            foreach (var npc in state.LoadOrder.PriorityOrder
+               .WinningOverrides<INpcGetter>()
+               .Where(x=>x.EditorID.ToLower().Contains("lvl"))) { 
+                
+            }
 
-            //// Little house keeping 
-            PatchHighPolyHead(state);
-            CreateBashPatchForLVLI(state);
-            CreateBashPatchForLVLN(state);
+            //// Reading and Parsing setting file
+            //Init(state);
 
-            // Saving all the patches to disk
-            Logger.InfoFormat("Saving all the patches to disk.....");
-            Patches.TryAdd(state.PatchMod.ModKey.FileName.String, state.PatchMod);
-            Patches.Values.ForEach(p => FileUtils.SaveMod(state, p));
+                //if (!RequirementsFullfilled(state)) return;
+                //// Morphs.create();
+
+                ////Distribute Jewellaries and Sleeping outfits, and outfits
+                //JewelaryManager.ProcessAndDistributeJewelary(state);
+                //new SleepingOutfitManager(state).ProcessSlepingOutfits();
+                //new OutfitManager(state).Process();
+
+                ////// Little house keeping 
+                //PatchHighPolyHead(state);
+                //CreateBashPatchForLVLI(state);
+                //CreateBashPatchForLVLN(state);
+
+                //// Saving all the patches to disk
+                //Logger.InfoFormat("Saving all the patches to disk.....");
+                //Patches.TryAdd(state.PatchMod.ModKey.FileName.String, state.PatchMod);
+                //Patches.Values.ForEach(p => FileUtils.SaveMod(state, p));
         }
 
         private static void CreateBashPatchForLVLI(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)

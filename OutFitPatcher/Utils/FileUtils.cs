@@ -2,6 +2,7 @@
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Binary;
+using Mutagen.Bethesda.Plugins.Binary.Parameters;
 using Mutagen.Bethesda.Plugins.Order;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
@@ -22,13 +23,13 @@ namespace OutFitPatcher.Utils
         private static readonly ILog Logger = LogManager.GetLogger(typeof(FileUtils));
         public static BinaryWriteParameters SafeBinaryWriteParameters => new()
         {
-            MasterFlag = BinaryWriteParameters.MasterFlagOption.ChangeToMatchModKey,
-            ModKey = BinaryWriteParameters.ModKeyOption.CorrectToPath,
-            RecordCount = BinaryWriteParameters.RecordCountOption.Iterate,
-            LightMasterLimit = BinaryWriteParameters.LightMasterLimitOption.ExceptionOnOverflow,
-            MastersListContent = BinaryWriteParameters.MastersListContentOption.Iterate,
-            FormIDUniqueness = BinaryWriteParameters.FormIDUniquenessOption.Iterate,
-            NextFormID = BinaryWriteParameters.NextFormIDOption.Iterate
+            MasterFlag = MasterFlagOption.ChangeToMatchModKey,
+            ModKey = ModKeyOption.CorrectToPath,
+            RecordCount = RecordCountOption.Iterate,
+            LightMasterLimit = LightMasterLimitOption.ExceptionOnOverflow,
+            MastersListContent = MastersListContentOption.Iterate,
+            FormIDUniqueness = FormIDUniquenessOption.Iterate,
+            NextFormID = NextFormIDOption.Iterate
         };
 
 

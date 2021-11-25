@@ -8,7 +8,7 @@ using Noggog;
 using System.Collections.Concurrent;
 using OutFitPatcher.Config;
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Cache.Implementations;
+using Mutagen.Bethesda.Plugins.Cache.Internals.Implementations;
 
 namespace OutFitPatcher.Armor
 {

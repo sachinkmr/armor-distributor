@@ -1,7 +1,7 @@
 ﻿using log4net;
 using Mutagen.Bethesda;
-using Mutagen.Bethesda.Cache.Implementations;
 using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Plugins.Cache.Internals.Implementations;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
