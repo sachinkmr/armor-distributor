@@ -5,9 +5,8 @@ namespace OutFitPatcher
     public class UserConfig
     {
         public bool JewelryForMales;
-        public bool MergePatcherMods;
         public bool AddArmorsToMannequin;
-        public bool PatchGurads;
+        public bool FilterGurads;
 
         public List<string>? ModsToSkip;
         public List<string>? JewelryMods;

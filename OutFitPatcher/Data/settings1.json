@@ -1,7 +1,7 @@
 {
   "JewelryForMales": false,
-  "AddArmorsToMannequin": true,
-  "PatchGurads": false,
+  "AddArmorsToMannequin": false,
+  "FilterGurads": true,
 
   "ModsToSkip": [
     "LegacyoftheDragonborn.esm",
@@ -324,7 +324,7 @@
     "Collygon - Monk Series.esp": [ "Sorcerer", "Mage" ],
     "[Odd] Sakura.esp": [ "Sorcerer", "Mage" ],
     "Dark Dreams.esp": [ "Sorcerer", "Mage" ],
-    "BDOR Enslar.esp": [ "Companion"],
+    "BDOR Enslar.esp": [ "Companion" ],
     "[Kirax] BDOR Marod Star.esp": [ "Sorcerer", "Mage" ],
     "zzMaidOutfits.esp": [ "Servent" ]
   }

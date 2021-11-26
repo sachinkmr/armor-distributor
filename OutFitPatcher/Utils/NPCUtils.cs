@@ -1,5 +1,6 @@
 ﻿using Mutagen.Bethesda;
 using Mutagen.Bethesda.FormKeys.SkyrimSE;
+using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using OutFitPatcher.Config;
 using System;
@@ -37,11 +38,16 @@ namespace OutFitPatcher.Utils
 
         public static bool isValidActorType(INpcGetter npc)
         {
-            var r = Configuration.Cache.Resolve<IRaceGetter>(npc.Race.FormKey);
+            return isValidActorType(npc, Configuration.Cache);
+        }
+
+        public static bool isValidActorType(INpcGetter npc, ILinkCache cache)
+        {
+            var r = cache.Resolve<IRaceGetter>(npc.Race.FormKey);
             return (r.HasKeyword(Skyrim.Keyword.ActorTypeNPC)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeDaedra)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeGhost)
-                || r.HasKeyword(Skyrim.Keyword.ActorTypePrisoner)) 
+                || r.HasKeyword(Skyrim.Keyword.ActorTypePrisoner))
                 && !(r.HasKeyword(Skyrim.Keyword.ActorTypeAnimal)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeCow)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeCreature)
@@ -51,7 +57,7 @@ namespace OutFitPatcher.Utils
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeGiant)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeHorse)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeTroll)
-                || r.HasKeyword(Skyrim.Keyword.ActorTypeUndead));               
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeUndead));
         }
 
         public static bool IsGuard(INpcGetter npc) {

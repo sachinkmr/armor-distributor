@@ -4,13 +4,13 @@
   "SLPLeveledListPrefix": "_ZZS_",
   "OutfitPatchedKeywordEID": "NpcOutfitPatched",
 
-  "InvalidOutfitRegex": "CLWGilded|CLWShadow|nude|slut|Jester|Cicero|Mutant|Headless|Horse|Draugr|Skin|Dragon|Dramorea|Quest|DEMO|Soldier|Vacated|Hidden|VROutfit|Prelate|Guard|Child",
+  "InvalidOutfitRegex": "Dwemer|(MQ[0-9])|(MS[0-9])|CLWGilded|CLWShadow|nude|slut|Jester|Cicero|Mutant|Headless|Horse|Draugr|Skin|Dragon|Dramorea|Quest|DEMO|Vacated|Hidden|VROutfit|Prelate|Skeleton",
   "ValidOutfitRegex": "GuardSon|Redguard|Dawnguard|FSGuard|SkinTight",
-  "InvalidArmorsRegex": "damage|Dummy|Horse|Mutant|Headless|Corpse|Fake|Template|Skin|Nake|Dummy|replica|skeleton|camp|backpack|Havok|slut|nude",
+  "InvalidArmorsRegex": "(MQ[0-9])|(MS[0-9])|damage|Dummy|Horse|Mutant|Headless|Corpse|Fake|Template|Skin|Nake|Dummy|replica|skeleton|camp|backpack|Havok|slut|nude|Skeleton",
   "ValidArmorsRegex": "GuardSon|Redguard|Dawnguard|FSGuard|SkinTight",
-  "InvalidFactionRegex": "Quest|Guard|Demo|Dummy|test|Dialogue|Ally|Friend|Crime|Allies|(MQ[0-9])|(MS[0-9])|Excluded",
+  "InvalidFactionRegex": "Quest|Demo|Dummy|test|Dialogue|Ally|Friend|Crime|Allies|(MQ[0-9])|(MS[0-9])|Excluded|Skeleton",
   "ValidFactionRegex": "GuardSon|Redguard|Dawnguard|FSGuard|GuardOrc",
-  "InvalidNpcRegex": "child|ghost|corpse|dead|Dummy|Decoy|Guard|Preset",
+  "InvalidNpcRegex": "ghost|corpse|dead|Dummy|Decoy|Preset|Skeleton",
   "ValidNpcRegex": "GuardSon|Redguard|Dawnguard|FSGuard|GuardOrc",
 
   "ClothesType": [ "Redguard", "Thalmor", "Prisoner", "Shroud", "Dunmer", "Merchant", "Miner", "BarKeep", "BlackSmith", "Farm", "Mourn", "Wench", "Chef", "Beggar", "Wedding", "Tavern", "Fine", "Noble", "Quilt", "Dress", "Coat", "Fair", "Suite", "Fashion", "jarl" ],
@@ -27,13 +27,15 @@
     "0A199B:Skyrim.esm"
   ],
 
-  "DividableFactions": "Warrior|Vampire|Housecarl|Redguard|Vigilant|Thief|Bandit|Dawnguard|Wench|Daedric|Thalmor|Imperial|Stormcloak|Forsworn|Mercenary|Bosmer|Daedra|Dunmer|Altmer|Falmer|Nord|Breton|Orc|Argonian|Khajiit",
+  "DividableFactions": "Vampire|Redguard|Thief|Bandit|Dawnguard|Daedric|Thalmor|Imperial|Stormcloak|Forsworn|Mercenary|Bosmer|Daedra|Dunmer|Altmer|Falmer|Nord|Breton|Orc|Argonian|Khajiit",
 
   "ArmorTypeRegex": {
-    "Heavy": "Beast|2H|Tank|ALL|Melee|Heavy|Berserker|Feral|DA13Heavy|GuardSon|Knight|Marauder|Berserker|lalawench_outfit_heavy|OBIS_Feral::Destruction|Conjuration|Restoration|Alteration|Illusion|Mage|Missile|Light|Clothes|Magic|Rose|Robe|JVD|Nubia|Digger|Archer|Assassin|caller|Wizard|Sorcer|Necro|Monk",
-    "Light": "Armor|ALL|Light|Butcher|Missle|Missile|Archer|Assassin|DA13Light|Assassin|GuardSons|lalawench_outfit_light|Range|Spellsword::Destruction|Conjuration|Restoration|Alteration|Illusion|Berserker|Knight|caller|Mage|Clothes|Magic|Robe|JVD|Nubia|Heavy|Feral|Melee|Wizard|Sorcer|Necro|Monk|Beast",
-    "Wizard": "Destruction|Conjuration|Restoration|Alteration|Illusion|ALL|Monk|Necro|Sorcer|Wizard|Mage|Robe|Clothes|Magic|JVD|Rose|caller|DA13Robe::Archer|Assassin|Berserker|Missile|Digger|Heavy|Melee|Light|Missle|Feral|Knight|Beast",
-    "Cloth": "Prisoner|Merchant|Miner|BarKeep|BlackSmith|Farm|Mourn|Chef|Beggar|Wedding|Tavern|Fine|Noble|Quilt|Dress|Coat|Fair|Suite|Fashion|jarl|Cloth::wench_Clothes"
+    //"Heavy": "Beast|2H|Tank|ALL|Melee|Heavy|Berserker|Feral|DA13Heavy|GuardSon|Knight|Marauder|Berserker|lalawench_outfit_heavy|OBIS_Feral::Destruction|Conjuration|Restoration|Alteration|Illusion|Mage|Missile|Light|Clothes|Magic|Rose|Robe|JVD|Nubia|Digger|Archer|Assassin|caller|Wizard|Sorcer|Necro|Monk",
+    //"Light": "Armor|ALL|Light|Butcher|Missle|Missile|Archer|Assassin|DA13Light|Assassin|GuardSons|lalawench_outfit_light|Range|Spellsword::Destruction|Conjuration|Restoration|Alteration|Illusion|Berserker|Knight|caller|Mage|Clothes|Magic|Robe|JVD|Nubia|Heavy|Feral|Melee|Wizard|Sorcer|Necro|Monk|Beast",
+    "Warrior": "DA13Light|lalawench_outfit_light|Armor|ALL|Light|Butcher|Spellsword|Light|Beast|2H|Tank|ALL|Melee|Heavy|Berserker|Feral|DA13Heavy|GuardSon|Knight|Marauder|Berserker|lalawench_outfit_heavy|OBIS_Feral::Destruction|Conjuration|Restoration|Alteration|Illusion|Mage|Missle|Missile|Clothes|Magic|Rose|Robe|JVD|Nubia|Archer|caller|Wizard|Sorcer|Necro|Monk|Assassin",
+    "Missle": "Light|Missle|Missile|Archer|Range::Destruction|Conjuration|Restoration|Alteration|Illusion|Berserker|Knight|caller|Mage|Clothes|Magic|Robe|JVD|Nubia|Heavy|Feral|Melee|Wizard|Sorcer|Necro|Monk|Beast|Butcher|Assassin|Spellsword",
+    "Wizard": "Destruction|Conjuration|Restoration|Alteration|Illusion|ALL|Monk|Necro|Sorcer|Wizard|Mage|Robe|Magic|JVD|Rose|caller|DA13Robe::Archer|Assassin|Berserker|Missile|Digger|Heavy|Melee|Light|Missle|Feral|Knight|Beast",
+    "Cloth": "Prisoner|Merchant|Miner|BarKeep|BlackSmith|Farm|Mourn|Chef|Beggar|Wedding|Tavern|Fine|Noble|Quilt|Dress|Coat|Fair|Suite|Fashion|jarl|Cloth::wench_Clothes|Assassin"
   },
 
   "OutfitRegex": {
@@ -70,23 +72,36 @@
     "Falmer": "Falmer|(Ice|snow)Elf",
     "Nord": "Nord",
     "Breton": "Breton",
-    "Orc": "Orc|GuardOrc|OrcStronghold::OrcFriend|lorCl|morC|ArmorC",
+    "Orc": "Orc|GuardOrc|OrcStronghold::OrcFriend|lorCl|morC|ArmorC|Sorcer",
     "Vampire": "Vamp",
     "Argonian": "Argonian",
     "Khajiit": "Khajiit",
 
-    // Classes
+    //Guards
+    "FalkreathGuards": "(?=.*Guard.*)(?=.*Falkreath.*)",
+    "HjaalmarchGuards": "(?=.*Guard.*)(?=.*Hjaalmarch.*)",
+    "ReachGuards": "(?=.*Guard.*)(?=.*Reach.*)",
+    "PaleGuards": "(?=.*Guard.*)(?=.*Pale.*)",
+    "RiftGuards": "(?=.*Guard.*)(?=.*Rift.*)",
+    "HaafingarGuards": "(?=.*Guard.*)(?=.*Haafingar.*)",
+    "WhiterunGuards": "(?=.*Guard.*)(?=.*Whiterun.*)",
+    "EastmarchGuards": "(?=.*Guard.*)(?=.*Eastmarch.*)",
+    "WinterholdGuards": "(?=.*Guard.*)(?=.*Winterhold.*)",
+    "ImperialGuards": "(?=.*Guard.*)(?=.*Imperial.*)",
+    "StormcloakGuards": "(?=.*Guard.*)(?=.*Stormcloak.*)",
+
+
+    // Classes/Build
     "Housecarl": "Housecarl",
     "Redguard": "Redguard",
     "Vigilant": "vigilant",
     "Thief": "Thief|Pickpocket|Speechcraft|Steal|Sneak|Lockpick|Thiev|ThievesGuild::TrainerSpeech",
-    "Warrior": "Warrior|Combat|Spellsword|Melee|OneHanded|Soldier|1H|AncientNord::Imperial|Guard|Stormcloak|Mage|Magic|Bandit",
+    "Warrior": "Berserker|Warrior|Combat|Spellsword|Melee|OneHanded|Soldier|1H|AncientNord::Imperial|Guard|Stormcloak|Mage|Magic|Bandit",
     "WenchTavern": "Tavern|wench::bandit|forsworn|stendarr|armor|guard|captured|light|heavy|nocturn|Vamp|Prisoner",
-    "Wench": "Wench::Prisoner|captured|Tavern",
     "Daedric": "Daedric|Dremora",
     "Thalmor": "Thalmor::Prisoner|captured",
-    "Imperial": "Imperial::Prisoner|captured",
-    "Stormcloak": "Stormcloak::Prisoner|captured",
+    "Imperial": "Imperial::Prisoner|captured|guard",
+    "Stormcloak": "Stormcloak::Prisoner|captured|guard",
     "Dawnguard": "Dawnguard",
     "Bandit": "Bandit|OBIS",
     "Mercenary": "Mercenary",
@@ -96,10 +111,10 @@
     "Psiijic": "Psiijic",
     "Bard": "JobBard::BardsCollege|Armor",
     "Blacksmith": "Blacksmith|Smithing|Enchant::Armor",
-    "Merchant": "Merchant|Vendor|Apothec|Alchem|Shop|Trader|Service::Blacksmith|Armor",
+    "Merchant": "Merchant|Alchem|Vendor|Shop|Trader|Service|apothec::Blacksmith|Armor",
     "Miner": "Mine|Worker::Armor",
     "Farmer": "Farmer|Farm|Wheat::Armor",
-    "BarKeeper": "food|server|barkeep|barmaid::wench|Armor",
+    "BarKeeper": "food|server|barkeep|barmaid::Armor",
     "Chef": "chef|Cook::Armor",
     "Hunter": "Hunter|Hunt::shadow|daedra",
     "Companion": "Companion",
@@ -110,22 +125,22 @@
     "Cultist": "Cultist",
     "Warlock": "Warlock::WarlockAlly",
     "Blade": "Blade::NightBlade",
-    "Sailor": "Dock|Sailor|ship|Pirate::Ships",
+    "Sailor": "Dock|Sailor|ship|Pirate::Ships|Worshipper",
     "Lumberjack": "Lumber",
     "Traveller": "Driver|Adventur|pilgrim|patrol|Travel|Wander|Journey|(Stendarr.*wench)",
-    "Prisoner": "Prison|Thrall",
+    "Prisoner": "Prison",
     "Beggar": "Beggar",
-    "Mourner": "Mourn",
-    "CitizenRich": "Noble|Fine|Quilt|Dress|Coat|Fair|Suite|Fashion::Wedding|guard",
+    "CitizenRich": "Noble|Fine|Quilt|Dress|Coat|Fair|Suite|Fashion|Wiseman|Citizen::Wedding|guard|Werewolf",
     "CitizenPoor": "Servant|Capture|Slave|Whore::wench",
-    "Necromancer": "Necro|Nocturnal|Witch|Destruction|Conjuration::College|Court|WitchHunter",
-    "Sorcerer": "Sorcer|Druid|PenitusOculatus",
-    "Mage": "Mage|Wizard|Vaermin|Druid|Alteration|Illusion",
-    "Healer": "Monk|Heal|Priest|Worship|Hermit|Restoration",
+    "Necromancer": "Necro|Nocturnal|Witch|Destruction|Conjuration|Conjurer::College|Court|WitchHunter",
+    "Mage": "Mage|Wizard|Vaermin|Druid|Alteration|Illusion|Sorcer|Druid|PenitusOculatus|Robe::Armor|College|Court|Citizen|Dremora",
+    "Healer": "Monk|Heal|Priest|Worship|Hermit|Restoration::College|Psijic",
     "Archer": "Archer|Ranger|Sniper|Crossbowman|Marksman|Missile|Bow",
     "Assassin": "Bladebinder|Assassin|Rogue|NightBlade",
     "Jailor": "Jailor",
     "Knight": "Beserk|TwoHanded|Knight|Block|2H|Ebony|Tank",
-    "Nightingale": "Nightingale"
+    "Nightingale": "Nightingale",
+    "Child": "Child",
+    "Psijic": "Psijic"
   }
 }

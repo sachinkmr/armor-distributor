@@ -33,7 +33,6 @@ namespace OutFitPatcher.Managers
         private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, string>> FemaleArmorMeshes = new();
         private static readonly ILog Logger = LogManager.GetLogger(typeof(OutfitManager));
         List<string> DividableFactions = new();
-        List<IFormLinkGetter<IRaceGetter>> ArmorAddonRaces=new();
 
         //TODO: Remove this
         readonly ConcurrentDictionary<string, object> all = new();
@@ -41,23 +40,15 @@ namespace OutFitPatcher.Managers
         {
             State = state;
             DividableFactions = Patcher.DividableFactions.ToLower().Split("|").ToList();
-            ArmorAddonRaces = state.LoadOrder.PriorityOrder
-                .Where(x => Patcher.Masters.Contains(x.ModKey.FileName))
-                .WinningOverrides<IRaceGetter>()
-                .Where(r => r.HasKeyword(Skyrim.Keyword.ActorTypeNPC)
-                && !Regex.IsMatch(r.EditorID, "Child|Test|Invisible|Ghost|Astrid", RegexOptions.IgnoreCase))
-                .Select(r=>r.AsLinkGetter())
-                .ToList();
         }
 
         public void Process()
         {
-           var outfits= GetPatchableOutfits();
-            
-            GetOutfitsForMaterial(outfits);
+           var outfits= GetPatchableOutfits();            
+            GroupOutfits(outfits);
 
-            GenerateArmorMeshesData();
-            ProcessArmorsForOutfits();
+            GenerateArmorSlotData();
+            CreateArmorsSets();
 
             CreateMaterialFactionBasedOutfits();
             ProcessNpcsForOutfits();
@@ -72,7 +63,6 @@ namespace OutFitPatcher.Managers
             State.LoadOrder.PriorityOrder
                 .Where(x => !User.ModsToSkip.Contains(x.ModKey.FileName))
                 .WinningOverrides<INpcGetter>().EmptyIfNull()
-                .Where(npc=> NPCUtils.IsValidNPC(npc))
                 .ForEach(npc =>
                 {
                     //mapping outfits
@@ -88,12 +78,12 @@ namespace OutFitPatcher.Managers
             return allowedOutfits;
         }
 
-        private void GetOutfitsForMaterial(Dictionary<string, int> AllowedOutfits)
+        private void GroupOutfits(Dictionary<string, int> AllowedOutfits)
         {
             Logger.InfoFormat("Getting outfits to be patched based on armor materials....");
             // Filtering outfits with more than 3 references
             var dict = AllowedOutfits
-                .Where(x => AllowedOutfits.GetValueOrDefault(x.Key) > 2
+                .Where(x => AllowedOutfits.GetValueOrDefault(x.Key) > 3
                     && ArmorUtils.IsValidOutfit(x.Key));
             var allowedOutfits = new Dictionary<string, int>(dict);
             Logger.InfoFormat("Patchable outfit records: {0}", allowedOutfits.Count);
@@ -102,20 +92,20 @@ namespace OutFitPatcher.Managers
                 outfit =>
                 {
                     string eid = outfit.EditorID;
-                    Logger.DebugFormat("Processing outfit: {0}[{1}]", eid, outfit.FormKey);
 
-                    var eidTypes = HelperUtils.GetRegexBasedGroup(Patcher.ArmorTypeRegex, eid);
-                    if (!eidTypes.Any()) eidTypes = new string[] { "" };
+                    var type = HelperUtils.GetRegexBasedGroup(Patcher.ArmorTypeRegex, eid);
+                    if (!type.Any()) type = new string[] { "" };
 
-                    var factions = HelperUtils.GetRegexBasedGroup(Patcher.OutfitRegex, eid);                    
-                    factions.ForEach(f =>
+                    var groups = HelperUtils.GetRegexBasedGroup(Patcher.OutfitRegex, eid);                    
+                    groups.ForEach(f =>
                     {
-                        eidTypes.ForEach(eidType=> {
+                        type.ForEach(eidType=> {
                             var k = DividableFactions.Contains(f.ToLower()) ? f + eidType : f;
                             Materials.GetOrAdd(k, new TArmorMaterial(k)).AddOutfit(outfit);
-                            //Materials.GetOrAdd(k, new TArmorMaterial(k));
                         });                        
                     });
+                    if (groups.Any()) Logger.DebugFormat("Outfit Processed: {0}[{1}]", eid, outfit.FormKey);
+                    else Logger.DebugFormat("Outfit Missed: {0}[{1}]", eid, outfit.FormKey);
                 }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 10 });
 
             foreach (IOutfitGetter outfit in State.LoadOrder.PriorityOrder
@@ -129,87 +119,13 @@ namespace OutFitPatcher.Managers
             }
             block.Complete();
             block.Completion.Wait();
+            FileUtils.WriteJson("GrouppedOutfits.json", 
+                Materials.ToDictionary(x => x.Key, x => x.Value.Outfits).OrderBy(x=>x.Key));
 
-            Logger.InfoFormat("Material based outfits are filtered for patching....\n\n");
+            Logger.InfoFormat("Outfits are categorized for patching....\n\n");
         }
 
-        private void GenerateArmorMeshesData()
-        {
-            Logger.InfoFormat("Generating armor meshes data...");
-            var masters = User.ArmorModsForOutfits.Keys.ToList();
-            masters.AddRange(Patcher.Masters);
-
-            var block = new ActionBlock<IArmorGetter>(
-                armor =>
-                {
-                    string material = ArmorUtils.GetMaterial(armor);                    
-                    if (!ArmorsWithSlot.ContainsKey(material))
-                        ArmorsWithSlot[material] = new();
-
-                    if (IsEligibleForMeshMapping(armor, material) 
-                        && armor.Armature.FirstOrDefault().TryResolve<IArmorAddonGetter>(Cache,out var addon))
-                    {
-                        // Adding Armor sets
-                        var slots = ArmorUtils.GetBodySlots(addon);
-                        if (masters.Contains(armor.FormKey.ModKey.FileName)) {
-                            slots.Select(x => x.ToString()).ForEach(slot => {
-                                if (!ArmorsWithSlot[material].ContainsKey(slot))
-                                    ArmorsWithSlot[material][slot] = armor.FormKey;
-                            });
-                        }                        
-
-                        if (addon.WorldModel != null && addon.WorldModel.Male != null)
-                        {
-                            if (File.Exists(Path.Combine(State.DataFolderPath, "Meshes", addon.WorldModel.Male.File)))
-                            {
-                                // Getting body armor related like data material, editorID, armor type etc
-                                if (!MaleArmorMeshes.ContainsKey(material))
-                                    MaleArmorMeshes.TryAdd(material, new());
-                                slots.ForEach(flag =>
-                                {
-                                    var slot = flag.ToString();
-                                    if (!MaleArmorMeshes.GetValueOrDefault(material).ContainsKey(slot))
-                                        MaleArmorMeshes.GetValueOrDefault(material).TryAdd(slot, addon.WorldModel.Male.File);
-                                });
-                            }
-                        }
-
-                        if (addon.WorldModel != null && addon.WorldModel.Female != null)
-                        {
-                            if (File.Exists(Path.Combine(State.DataFolderPath, "Meshes", addon.WorldModel.Female.File)))
-                            {
-                                // Getting body armor related like data material, editorID, armor type etc
-                                if (!FemaleArmorMeshes.ContainsKey(material))
-                                    FemaleArmorMeshes.TryAdd(material, new());
-                                slots.ForEach(flag =>
-                                {
-                                    var slot = flag.ToString();
-                                    if (!FemaleArmorMeshes.GetValueOrDefault(material).ContainsKey(slot))
-                                        FemaleArmorMeshes.GetValueOrDefault(material).TryAdd(slot, addon.WorldModel.Female.File);
-                                });
-                            }
-                        }
-                    }
-                }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 10 });
-
-            foreach (IArmorGetter armor in State.LoadOrder.PriorityOrder
-                .Where(x => !User.ModsToSkip.Contains(x.ModKey.FileName)
-                    && !User.SleepingOutfitMods.Contains(x.ModKey.FileName)
-                    && !User.JewelryMods.Contains(x.ModKey.FileName))
-                .WinningOverrides<IArmorGetter>()
-                .Where(x =>
-                    ArmorUtils.IsValidArmor(x)
-                    && x.Keywords != null && !x.HasKeyword(Skyrim.Keyword.ArmorJewelry)
-                    && !x.HasKeyword(Skyrim.Keyword.ArmorShield)).EmptyIfNull())
-            {
-                block.Post(armor);
-            }
-            block.Complete();
-            block.Completion.Wait();
-            Logger.InfoFormat("Armor meshes data generated...\n\n");
-        }
-
-        private void ProcessArmorsForOutfits()
+        private void CreateArmorsSets()
         {
             Logger.InfoFormat("Grouping Armors....");
             // For each armor mod creating armor sets, skipping mods which have the outfit records.
@@ -236,7 +152,7 @@ namespace OutFitPatcher.Managers
                     {
                         if (ArmorUtils.IsBodyArmor(armor)) bodies.Add(armor);
                         else others.Add(armor);
-                        AddMissingGenderMeshes(patch, armor);
+                        //AddMissingGenderMeshes(patch, armor);
                     });
 
                 int bodyCount = bodies.Count;
@@ -365,7 +281,7 @@ namespace OutFitPatcher.Managers
                 .Where(c => !c.DefaultOutfit.IsNull
                     && !outfit2Skip.Contains(c.DefaultOutfit.FormKey)
                     && NPCUtils.IsValidNPC(c)
-                    && !NPCUtils.IsChild(c) && !NPCUtils.IsGuard(c)
+                    && !NPCUtils.IsChild(c) && User.FilterGurads?!NPCUtils.IsGuard(c):true
                     && Cache.Resolve<IRaceGetter>(c.Race.FormKey).HasKeyword(Skyrim.Keyword.ActorTypeNPC))
                 .Select(x=> new TNPC(State, x))) {
                 
@@ -399,8 +315,8 @@ namespace OutFitPatcher.Managers
 
             // Assiging outfits using SPID
             List<string> lines = new();
-            string filters = User.PatchGurads ? "NONE" : "NOT 0x00"
-                +Skyrim.Faction.GuardDialogueFaction.FormKey.IDString();
+            string filters = User.FilterGurads ? "-0x"
+                +Skyrim.Faction.GuardDialogueFaction.FormKey.IDString(): "NONE";
 
             foreach (var k in otftKywrds.Keys) {
                 var id = k.Replace("_OTFT","");
@@ -426,66 +342,6 @@ namespace OutFitPatcher.Managers
             Logger.InfoFormat("Total NPC records processed: {0}...\n\n", processed);
         }
 
-        private void AddMissingGenderMeshes(ISkyrimMod patch, IArmorGetter armor)
-        {
-            string material = ArmorUtils.GetMaterial(armor);
-            if (!IsEligibleForMeshMapping(armor, material))
-            {
-                Logger.DebugFormat("Skipping adding of missing mesh for armor: " + armor.EditorID);
-                return;
-            }
-
-            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Cache);
-            ArmorUtils.GetBodySlots(addon).ForEach(flag =>
-            {
-                var slot = flag.ToString();
-                // Mapping Male Models with Female only Armor
-                if (addon.WorldModel != null && addon.WorldModel.Male == null
-                    && MaleArmorMeshes.ContainsKey(material)
-                    && MaleArmorMeshes.GetValueOrDefault(material).TryGetValue(slot, out var maleMesh))
-                {
-                    IArmorAddon localAddon = patch.ArmorAddons.GetOrAddAsOverride(addon);
-                    localAddon.WorldModel.Male = new();
-                    localAddon.WorldModel.Male.File = maleMesh;
-                    Logger.DebugFormat("Missing male mesh added for armor: " + armor.EditorID);
-                    return;
-                }
-
-                // Mapping Female Models with Female only Armor
-                if (addon.WorldModel != null && addon.WorldModel.Female == null
-                    && FemaleArmorMeshes.ContainsKey(material)
-                    && MaleArmorMeshes.GetValueOrDefault(material).TryGetValue(slot, out var femaleMesh))
-                {
-                    IArmorAddon localAddon = patch.ArmorAddons.GetOrAddAsOverride(addon);
-                    localAddon.WorldModel.Male = new();
-                    localAddon.WorldModel.Male.File = femaleMesh;
-                    Logger.DebugFormat("Missing female mesh added for armor: " + armor.EditorID);
-                }
-            });
-
-            // Adding missing races
-            if (addon.AdditionalRaces.Count > 1) {
-                var missingRaces = ArmorAddonRaces.Except(addon.AdditionalRaces);
-                IArmorAddon localAddon = patch.ArmorAddons.GetOrAddAsOverride(addon);
-                localAddon.AdditionalRaces.AddRange(missingRaces);
-            }            
-        }
-
-        private bool IsEligibleForMeshMapping(IArmorGetter armor, string material)
-        {
-            var groups = HelperUtils.GetRegexBasedGroup(Regex4outfits, material, armor.EditorID);
-            var key = groups.Any() ? groups.First() : "Unknown";
-            return Materials.ContainsKey(key)
-                    && armor.Armature != null
-                    && armor.Armature.Count > 0
-                    && !armor.HasKeyword(Skyrim.Keyword.ArmorHelmet)
-                    && !armor.HasKeyword(Skyrim.Keyword.ArmorJewelry)
-                    && !armor.HasKeyword(Skyrim.Keyword.ArmorShield)
-                    && !armor.HasKeyword(Skyrim.Keyword.ClothingHead)
-                    && !armor.HasKeyword(Skyrim.Keyword.ClothingCirclet)
-                    && !armor.HasKeyword(Skyrim.Keyword.ClothingNecklace);
-        }
-
         private Dictionary<string, TArmorGroupable> MergeAndPatchOutfits()
         {
             Dictionary<string, TArmorGroupable> MergedOutfits = new(Materials.ToList());
@@ -509,15 +365,18 @@ namespace OutFitPatcher.Managers
                 {
                     MergedOutfits["BanditLight"].Armors.Add(set);
                     MergedOutfits["MercenaryLight"].Armors.Add(set);
-                }else if (set.Type == TArmorType.Wizard)
+                }
+                else if (set.Type == TArmorType.Wizard)
                 {
                     MergedOutfits["BanditWizard"].Armors.Add(set);
                     MergedOutfits["MercenaryWizard"].Armors.Add(set);
-                }else if (set.Type == TArmorType.Heavy)
+                }
+                else if (set.Type == TArmorType.Heavy)
                 {
                     MergedOutfits["BanditHeavy"].Armors.Add(set);
                     MergedOutfits["MercenaryHeavy"].Armors.Add(set);
-                }else if (set.Type == TArmorType.Cloth) 
+                }
+                else if (set.Type == TArmorType.Cloth)
                     MergedOutfits["CitizenRich"].Armors.Add(set);
             });
 
@@ -584,7 +443,137 @@ namespace OutFitPatcher.Managers
                 }
             });
 
-            return MergedOutfits.Where(x=> !x.Value.Armors.IsEmpty).ToDictionary();
+            return MergedOutfits.Where(x => !x.Value.Armors.IsEmpty).ToDictionary();
+        }
+
+        private void AddMissingGenderMeshes(ISkyrimMod patch, IArmorGetter armor)
+        {
+            string material = ArmorUtils.GetMaterial(armor);
+            if (!IsEligibleForMeshMapping(armor, material))
+            {
+                Logger.DebugFormat("Skipping adding of missing mesh for armor: " + armor.EditorID);
+                return;
+            }
+
+            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Cache);
+            ArmorUtils.GetBodySlots(addon).ForEach(flag =>
+            {
+                var slot = flag.ToString();
+                // Mapping Male Models with Female only Armor
+                if (addon.WorldModel != null && addon.WorldModel.Male == null
+                    && MaleArmorMeshes.ContainsKey(material)
+                    && MaleArmorMeshes.GetValueOrDefault(material).TryGetValue(slot, out var maleMesh))
+                {
+                    IArmorAddon localAddon = patch.ArmorAddons.GetOrAddAsOverride(addon);
+                    localAddon.WorldModel.Male = new();
+                    localAddon.WorldModel.Male.File = maleMesh;
+                    Logger.DebugFormat("Missing male mesh added for armor: " + armor.EditorID);
+                    return;
+                }
+
+                // Mapping Female Models with Female only Armor
+                if (addon.WorldModel != null && addon.WorldModel.Female == null
+                    && FemaleArmorMeshes.ContainsKey(material)
+                    && MaleArmorMeshes.GetValueOrDefault(material).TryGetValue(slot, out var femaleMesh))
+                {
+                    IArmorAddon localAddon = patch.ArmorAddons.GetOrAddAsOverride(addon);
+                    localAddon.WorldModel.Male = new();
+                    localAddon.WorldModel.Male.File = femaleMesh;
+                    Logger.DebugFormat("Missing female mesh added for armor: " + armor.EditorID);
+                }
+            });         
+        }
+
+        private void GenerateArmorSlotData()
+        {
+            Logger.InfoFormat("Generating armor meshes data...");
+            var masters = User.ArmorModsForOutfits.Keys.ToList();
+            masters.AddRange(Patcher.Masters);
+
+            var block = new ActionBlock<IArmorGetter>(
+                armor =>
+                {
+                    string material = ArmorUtils.GetMaterial(armor);
+                    if (!ArmorsWithSlot.ContainsKey(material))
+                        ArmorsWithSlot[material] = new();
+
+                    if (IsEligibleForMeshMapping(armor, material)
+                        && armor.Armature.FirstOrDefault().TryResolve<IArmorAddonGetter>(Cache, out var addon))
+                    {
+                        // Adding Armor sets
+                        var slots = ArmorUtils.GetBodySlots(addon);
+                        if (masters.Contains(armor.FormKey.ModKey.FileName))
+                        {
+                            slots.Select(x => x.ToString()).ForEach(slot => {
+                                if (!ArmorsWithSlot[material].ContainsKey(slot))
+                                    ArmorsWithSlot[material][slot] = armor.FormKey;
+                            });
+                        }
+
+                        //if (addon.WorldModel != null && addon.WorldModel.Male != null)
+                        //{
+                        //    if (File.Exists(Path.Combine(State.DataFolderPath, "Meshes", addon.WorldModel.Male.File)))
+                        //    {
+                        //        // Getting body armor related like data material, editorID, armor type etc
+                        //        if (!MaleArmorMeshes.ContainsKey(material))
+                        //            MaleArmorMeshes.TryAdd(material, new());
+                        //        slots.ForEach(flag =>
+                        //        {
+                        //            var slot = flag.ToString();
+                        //            if (!MaleArmorMeshes.GetValueOrDefault(material).ContainsKey(slot))
+                        //                MaleArmorMeshes.GetValueOrDefault(material).TryAdd(slot, addon.WorldModel.Male.File);
+                        //        });
+                        //    }
+                        //}
+
+                        //if (addon.WorldModel != null && addon.WorldModel.Female != null)
+                        //{
+                        //    if (File.Exists(Path.Combine(State.DataFolderPath, "Meshes", addon.WorldModel.Female.File)))
+                        //    {
+                        //        // Getting body armor related like data material, editorID, armor type etc
+                        //        if (!FemaleArmorMeshes.ContainsKey(material))
+                        //            FemaleArmorMeshes.TryAdd(material, new());
+                        //        slots.ForEach(flag =>
+                        //        {
+                        //            var slot = flag.ToString();
+                        //            if (!FemaleArmorMeshes.GetValueOrDefault(material).ContainsKey(slot))
+                        //                FemaleArmorMeshes.GetValueOrDefault(material).TryAdd(slot, addon.WorldModel.Female.File);
+                        //        });
+                        //    }
+                        //}
+                    }
+                }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 10 });
+
+            foreach (IArmorGetter armor in State.LoadOrder.PriorityOrder
+                .Where(x => !User.ModsToSkip.Contains(x.ModKey.FileName)
+                    && !User.SleepingOutfitMods.Contains(x.ModKey.FileName)
+                    && !User.JewelryMods.Contains(x.ModKey.FileName))
+                .WinningOverrides<IArmorGetter>()
+                .Where(x =>
+                    ArmorUtils.IsValidArmor(x)
+                    && x.Keywords != null && !x.HasKeyword(Skyrim.Keyword.ArmorJewelry)
+                    && !x.HasKeyword(Skyrim.Keyword.ArmorShield)).EmptyIfNull())
+            {
+                block.Post(armor);
+            }
+            block.Complete();
+            block.Completion.Wait();
+            Logger.InfoFormat("Armor meshes data generated...\n\n");
+        }
+
+        private bool IsEligibleForMeshMapping(IArmorGetter armor, string material)
+        {
+            var groups = HelperUtils.GetRegexBasedGroup(Regex4outfits, material, armor.EditorID);
+            var key = groups.Any() ? groups.First() : "Unknown";
+            return Materials.ContainsKey(key)
+                    && armor.Armature != null
+                    && armor.Armature.Count > 0
+                    && !armor.HasKeyword(Skyrim.Keyword.ArmorHelmet)
+                    && !armor.HasKeyword(Skyrim.Keyword.ArmorJewelry)
+                    && !armor.HasKeyword(Skyrim.Keyword.ArmorShield)
+                    && !armor.HasKeyword(Skyrim.Keyword.ClothingHead)
+                    && !armor.HasKeyword(Skyrim.Keyword.ClothingCirclet)
+                    && !armor.HasKeyword(Skyrim.Keyword.ClothingNecklace);
         }
     }
 }

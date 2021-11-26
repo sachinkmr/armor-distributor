@@ -29,7 +29,7 @@
       <None Remove="Data\config\patcher-settings - Copy.json" />
       <None Remove="Data\config\patcher-settings.json" />
       <None Remove="Data\settings - Copy.json" />
-      <None Remove="Data\settings.json" />
+      <None Remove="Data\settings1.json" />
       <Content Include="Data\config\bodyslots.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
@@ -39,7 +39,7 @@
       <Content Include="Data\config\patcher-settings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <Content Include="Data\settings.json">
+      <Content Include="Data\settings1.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <None Update="Data\scripts\mannequinactivatorscript.pex">
@@ -59,13 +59,11 @@
       </None>
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
       <PackageReference Include="log4net" Version="2.0.13" />
-      <PackageReference Include="Mutagen.Bethesda" Version="0.33.6" />
-      <PackageReference Include="Mutagen.Bethesda.Core" Version="0.33.6" />
+      <PackageReference Include="Mutagen.Bethesda" Version="0.33.7-pr001" />
+      <PackageReference Include="Mutagen.Bethesda.Core" Version="0.33.7-pr001" />
       <PackageReference Include="Mutagen.Bethesda.FormKeys.SkyrimSE" Version="2.1.0" />
-      <PackageReference Include="Mutagen.Bethesda.Kernel" Version="0.33.6" />
-      <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.33.6" />
+      <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.33.7-pr001" />
       <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.20.6" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
