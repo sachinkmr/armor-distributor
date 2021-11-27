@@ -9,6 +9,7 @@ using System.Collections.Concurrent;
 using OutFitPatcher.Config;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache.Internals.Implementations;
+using static OutFitPatcher.Config.Configuration;
 
 namespace OutFitPatcher.Armor
 {
@@ -63,17 +64,17 @@ namespace OutFitPatcher.Armor
             });
         }
 
-        public void CreateGroupOutfits(ISkyrimMod? PatchedMod) {
-            foreach (var g in GenderOutfit.Keys) {
-                var lls = GetLeveledListsUsingArmorSets(g);
-                if (lls.Any()) {
-                    LeveledItem mLLC = OutfitUtils.CreateLeveledList(PatchedMod, lls, "mLL_" + Name + "_" + g, 1, Configuration.LeveledListFlag);
-                    Outfit gOTFT = PatchedMod.Outfits.AddNew(Name + "_Outfit_"+g);
-                    gOTFT.Items = new();
-                    gOTFT.Items.Add(mLLC);
-                    GenderOutfit[g] = gOTFT.FormKey;
-                }                
-            }           
+        public void CreateGenderSpecificOutfits(ISkyrimMod? PatchedMod) {
+            var GenderedArmors = Armors.GroupBy(x => x.Gender);
+            var LLs = GenderedArmors.ToDictionary(x => x.Key,
+                x => x.Select(a => a.CreateLeveledList().AsLink<IItemGetter>()));
+            LLs.ForEach(x => {
+                string eid = Patcher.LeveledListPrefix + "mLL_" + Name + "_" + x.Key;
+                LeveledItem mLL = OutfitUtils.CreateLeveledList(PatchedMod, x.Value, eid, 1, LeveledListFlag);
+                Outfit newOutfit = PatchedMod.Outfits.AddNew(eid);
+                newOutfit.Items = new(mLL.AsLink().AsEnumerable());
+                GenderOutfit[x.Key] = newOutfit.FormKey;
+            });          
         }
 
         public IEnumerable<FormLink<IItemGetter>> GetLeveledListsUsingArmorSets(string gender="C")

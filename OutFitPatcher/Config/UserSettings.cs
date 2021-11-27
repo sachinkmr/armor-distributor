@@ -28,10 +28,10 @@ namespace OutFitPatcher.Config
         [SynthesisOrder]
         public bool FilterUniqueNPC =true;
 
-        public List<ModKey> ModsToSkip=new();
-        public List<ModKey> JewelryMods = new();
-        public List<ModKey> SleepingOutfitMods = new();
-        public List<FormKey> NPCToSkip = new();
-        public Dictionary<ModKey, List<string>>? ArmorModsForOutfits = new();
+        //public List<ModKey> ModsToSkip=new();
+        //public List<ModKey> JewelryMods = new();
+        //public List<ModKey> SleepingOutfitMods = new();
+        //public List<FormKey> NPCToSkip = new();
+        //public Dictionary<ModKey, List<string>>? ArmorModsForOutfits = new();
     }
 }

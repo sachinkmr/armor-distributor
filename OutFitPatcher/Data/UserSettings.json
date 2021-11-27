@@ -80,7 +80,7 @@
     "Lingerie Set.esp"
   ],
   "ArmorModsForOutfits": {
-    "Apachii_DivineEleganceStore.esm": [ "Generic" ],
+  //  "Apachii_DivineEleganceStore.esm": [ "Generic" ],
     "Book of UUNP Iron And Steel.esp": [ "Generic" ],
     "BD Standalone.esp": [ "Generic" ],
     "[SunJeong] Ninirim Collection.esp": [ "Generic" ],

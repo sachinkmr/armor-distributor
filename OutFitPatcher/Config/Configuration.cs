@@ -28,8 +28,7 @@ namespace OutFitPatcher.Config
         internal static  IPatcherState<ISkyrimMod, ISkyrimModGetter>? State;
 
         internal static HashSet<FormKey> NPCs2Skip=new();
-        internal static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, FormKey>> ArmorsWithSlot = new();
-
+        
         internal static void Init(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             string configFile = Path.Combine(state.ExtraSettingsDataPath, "config", "patcher-settings.json");
@@ -42,7 +41,7 @@ namespace OutFitPatcher.Config
             LeveledNpcFlag = LeveledNpc.Flag.CalculateForEachItemInCount.Or(LeveledNpc.Flag.CalculateFromAllLevelsLessThanOrEqualPlayer);
 
             // Loading user defined data
-            configFile = Path.Combine(state.ExtraSettingsDataPath, "settings.json");
+            configFile = Path.Combine(state.ExtraSettingsDataPath, "UserSettings.json");
             User = FileUtils.ReadJson<UserConfig>(configFile);
 
             User.NPCToSkip.ForEach(key => {
