@@ -127,7 +127,7 @@
     "Blade": "Blade::NightBlade",
     "Sailor": "Dock|Sailor|ship|Pirate::Ships|Worshipper",
     "Lumberjack": "Lumber",
-    "Traveller": "Driver|Adventur|pilgrim|patrol|Travel|Wander|Journey|(Stendarr.*wench)",
+    "Traveller": "Driver|Adventur|pilgrim|patrol|Travel|Wander|Journey|Stendarr.*wench::smith",
     "Prisoner": "Prison",
     "Beggar": "Beggar",
     "CitizenRich": "Noble|Fine|Quilt|Dress|Coat|Fair|Suite|Fashion|Wiseman|Citizen::Wedding|guard|Werewolf",

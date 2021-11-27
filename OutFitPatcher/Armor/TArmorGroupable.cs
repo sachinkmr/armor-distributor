@@ -13,7 +13,7 @@ using static OutFitPatcher.Config.Configuration;
 
 namespace OutFitPatcher.Armor
 {
-    public class TArmorGroupable
+    public abstract class TArmorGroupable
     {
         public string Name { get; }
 
