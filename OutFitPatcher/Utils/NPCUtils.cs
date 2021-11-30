@@ -15,8 +15,8 @@ namespace OutFitPatcher.Utils
     public class NPCUtils
     {
         public static bool IsChild(INpcGetter npc) {
-            return IsChild(Configuration.Cache.Resolve<IRaceGetter>(npc.Race.FormKey))
-                || IsChild(Configuration.Cache.Resolve<IClassGetter>(npc.Class.FormKey).EditorID);
+            return IsChild(Settings.Cache.Resolve<IRaceGetter>(npc.Race.FormKey))
+                || IsChild(Settings.Cache.Resolve<IClassGetter>(npc.Class.FormKey).EditorID);
         }
 
         public static bool IsChild(IRaceGetter race)
@@ -30,15 +30,15 @@ namespace OutFitPatcher.Utils
         }
 
         public static bool IsValidNPC(INpcGetter npc) {
-            return !Configuration.NPCs2Skip.Contains(npc.FormKey) 
+            return !Settings.NPCs2Skip.Contains(npc.FormKey) 
                 && !IsChild(npc) && isValidActorType(npc)
-                && (Regex.IsMatch(npc.EditorID, Configuration.Patcher.ValidNpcRegex, RegexOptions.IgnoreCase)
-                    || !Regex.IsMatch(npc.EditorID, Configuration.Patcher.InvalidNpcRegex, RegexOptions.IgnoreCase));
+                && (Regex.IsMatch(npc.EditorID, Settings.PatcherSettings.ValidNpcRegex, RegexOptions.IgnoreCase)
+                    || !Regex.IsMatch(npc.EditorID, Settings.PatcherSettings.InvalidNpcRegex, RegexOptions.IgnoreCase));
         }
 
         public static bool isValidActorType(INpcGetter npc)
         {
-            return isValidActorType(npc, Configuration.Cache);
+            return isValidActorType(npc, Settings.Cache);
         }
 
         public static bool isValidActorType(INpcGetter npc, ILinkCache cache)
@@ -92,7 +92,7 @@ namespace OutFitPatcher.Utils
 
         public static bool IsFollower(INpcGetter npc)
         {
-            return npc.Factions.Any(r =>r.Faction.Resolve<IFactionGetter>(Configuration.Cache).EditorID.Contains("FollowerFaction"));
+            return npc.Factions.Any(r => r.Faction.Resolve(Settings.State.LinkCache).EditorID.Contains("FollowerFaction"));
         }
     }
 }

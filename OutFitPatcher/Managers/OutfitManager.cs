@@ -12,7 +12,6 @@ using System.Collections.Concurrent;
 using OutFitPatcher.Utils;
 using System.Collections.Generic;
 using System.Linq;
-using static OutFitPatcher.Config.Configuration;
 using OutFitPatcher.Armor;
 using log4net;
 using OutFitPatcher.NPC;
@@ -28,14 +27,14 @@ namespace OutFitPatcher.Managers
 
         private List<string> DividableFactions = new();
         private ConcurrentDictionary<string, TArmorGroupable> GrouppedArmorSets = new();
-        private readonly Dictionary<string, string> Regex4outfits = Patcher.OutfitRegex;
+        private readonly Dictionary<string, string> Regex4outfits = Settings.PatcherSettings.OutfitRegex;
         private static readonly ILog Logger = LogManager.GetLogger(typeof(OutfitManager));
         private ConcurrentDictionary<string, ConcurrentDictionary<string, ConcurrentDictionary<FormKey, float>>> ArmorsWithSlot = new();
 
         public OutfitManager(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             State = state;
-            DividableFactions = Patcher.DividableFactions.ToLower().Split("|").ToList();
+            DividableFactions = Settings.PatcherSettings.DividableFactions.ToLower().Split("|").ToList();
         }
 
         public void Process()
@@ -57,12 +56,12 @@ namespace OutFitPatcher.Managers
             Logger.InfoFormat("Fetching outfit records...");
             Dictionary<string, int> allowedOutfits = new();
             State.LoadOrder.PriorityOrder
-                .Where(x => !User.ModsToSkip.Contains(x.ModKey.FileName))
+                .Where(x => !Settings.UserSettings.ModsToSkip.Contains(x.ModKey.FileName))
                 .WinningOverrides<INpcGetter>().EmptyIfNull()
                 .ForEach(npc =>
                 {
                     //mapping outfits
-                    if (npc.DefaultOutfit.TryResolve<IOutfitGetter>(Cache, out IOutfitGetter otft))
+                    if (npc.DefaultOutfit.TryResolve<IOutfitGetter>(Settings.Cache, out IOutfitGetter otft))
                     {
                         string otfteid = otft.EditorID;
                         int val = allowedOutfits.ContainsKey(otfteid)
@@ -91,8 +90,8 @@ namespace OutFitPatcher.Managers
                 }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 10 });
 
             foreach (IOutfitGetter outfit in State.LoadOrder.PriorityOrder
-                .Where(x => !User.ModsToSkip.Contains(x.ModKey.FileName)
-                    && !User.SleepingOutfitMods.Contains(x.ModKey.FileName))
+                .Where(x => !Settings.UserSettings.ModsToSkip.Contains(x.ModKey.FileName)
+                    && !Settings.UserSettings.SleepingOutfitMods.Contains(x.ModKey.FileName))
                 .WinningOverrides<IOutfitGetter>()
                 .Where(x => ArmorUtils.IsValidOutfit(x)
                     && allowedOutfits.ContainsKey(x.EditorID)))
@@ -111,10 +110,10 @@ namespace OutFitPatcher.Managers
             // For each armor mod creating armor sets, skipping mods which have the outfit records.
             // If these outfit records are overriden it will be resolved later in the patch
             var modlists = State.LoadOrder.PriorityOrder
-                .Where(x => User.ArmorModsForOutfits.ContainsKey(x.ModKey.FileName)
+                .Where(x => Settings.UserSettings.ArmorModsForOutfits.ContainsKey(x.ModKey.FileName)
                     && x.Mod.Armors.Count > 0
                     && (!x.Mod.Outfits.Any() 
-                    || x.Mod.Outfits.Where(x=> !Patcher.Masters.Contains(x.FormKey.ModKey.FileName)).Any()));
+                    || x.Mod.Outfits.Where(x=> !Settings.PatcherSettings.Masters.Contains(x.FormKey.ModKey.FileName)).Any()));
 
 
             for(int m= 0; m < modlists.Count(); m++)
@@ -123,7 +122,7 @@ namespace OutFitPatcher.Managers
                 List<IArmorGetter> bodies = new();
                 List<IArmorGetter> others = new();
 
-                var patchName = Patcher.PatcherPrefix+"Armors " + (m / 150)+".esp";
+                var patchName = Settings.PatcherSettings.PatcherPrefix+"Armors " + (m / 150)+".esp";
                 ISkyrimMod patch = FileUtils.GetOrAddPatch(patchName);                
 
                 mod.Armors
@@ -154,11 +153,11 @@ namespace OutFitPatcher.Managers
                         FormKey feet = ArmorsWithSlot[type][TBodySlot.Feet.ToString()]
                             .Where(x => x.Value <= body.Value)
                             .First().Key;
-                        armorSet.AddArmor(new TArmor(Cache.Resolve<IArmorGetter>(feet), armorSet.Material));                               
+                        armorSet.AddArmor(new TArmor(Settings.Cache.Resolve<IArmorGetter>(feet), armorSet.Material));                               
                     }
 
                     armorSet.CreateLeveledList();
-                    List<string> modsFactions = User.ArmorModsForOutfits[mod.ModKey.FileName];
+                    List<string> modsFactions = Settings.UserSettings.ArmorModsForOutfits[mod.ModKey.FileName];
                     modsFactions.Remove("Generic");
 
                     // to be distributed using materials
@@ -183,7 +182,7 @@ namespace OutFitPatcher.Managers
         
         private void CreateNewOutfits()
         {
-            PatchedMod = FileUtils.GetOrAddPatch(Patcher.PatcherPrefix + "Outfits.esp");
+            PatchedMod = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "Outfits.esp");
             Logger.InfoFormat("Creating Outfit records...");
 
             GrouppedArmorSets["Unknown"].Armors.ForEach(set =>
@@ -219,9 +218,9 @@ namespace OutFitPatcher.Managers
             var outfitContext = State.LoadOrder.PriorityOrder.Outfit()
                .WinningContextOverrides().Where(x => ArmorUtils.IsValidOutfit(x.Record));
 
-            PatchedMod = FileUtils.GetOrAddPatch(Patcher.PatcherPrefix + "Outfits.esp");
+            PatchedMod = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "Outfits.esp");
             foreach (var outfit in State.LoadOrder.PriorityOrder
-                .Where(x=> User.ArmorModsForOutfits.ContainsKey(x.ModKey.FileName))
+                .Where(x=> Settings.UserSettings.ArmorModsForOutfits.ContainsKey(x.ModKey.FileName))
                 .WinningOverrides<IOutfitGetter>()) {
                 
                 var winningOtfts = outfitContext.Where(c => c.Record.FormKey == outfit.FormKey).EmptyIfNull();
@@ -230,33 +229,37 @@ namespace OutFitPatcher.Managers
                     var winningOtft = winningOtfts.First().Record;
                     
                     // Reverting Overriden outfit by armor mods added in the patcher
-                    var lastNonModOutfit = Cache.ResolveAllContexts<IOutfit, IOutfitGetter>(winningOtft.FormKey)
-                        .Where(c => !User.ArmorModsForOutfits.ContainsKey(c.ModKey.FileName)).First().Record;
-                    Outfit o = PatchedMod.Outfits.GetOrAddAsOverride(lastNonModOutfit);
+                    var lastNonModOutfit = Settings.Cache.ResolveAllContexts<IOutfit, IOutfitGetter>(winningOtft.FormKey)
+                        .Where(c => !Settings.UserSettings.ArmorModsForOutfits.ContainsKey(c.ModKey.FileName));
 
-                    // Getting outfit records form armor mods added in the patcher and patchign those
-                    List<LeveledItem> oLLs = new();
-                    var overridenOtfts = Cache.ResolveAllContexts<IOutfit, IOutfitGetter>(winningOtft.FormKey)
-                        .Where(c => User.ArmorModsForOutfits.ContainsKey(c.ModKey.FileName));
-                    overridenOtfts.ForEach(r => {
-                        var items = r.Record.Items.Select(x => Cache.Resolve<IItemGetter>(x.FormKey));
-                        var ll = OutfitUtils.CreateLeveledList(PatchedMod, items, "ll_"+r.Record.EditorID + 0, 1, LeveledItem.Flag.UseAll);
-                        oLLs.Add(ll);
-                    });
+                    if (lastNonModOutfit.Count() > 1)
+                    {
+                        // Getting outfit records form armor mods added in the patcher and patchign those
+                        List<LeveledItem> oLLs = new();
+                        Outfit o = PatchedMod.Outfits.GetOrAddAsOverride(lastNonModOutfit.First().Record);
+                        var overridenOtfts = Settings.Cache.ResolveAllContexts<IOutfit, IOutfitGetter>(winningOtft.FormKey)
+                            .Where(c => Settings.UserSettings.ArmorModsForOutfits.ContainsKey(c.ModKey.FileName));
+                        overridenOtfts.ForEach(r =>
+                        {
+                            var items = r.Record.Items.Select(x => Settings.Cache.Resolve<IItemGetter>(x.FormKey));
+                            var ll = OutfitUtils.CreateLeveledList(PatchedMod, items, "ll_" + r.Record.EditorID + 0, 1, LeveledItem.Flag.UseAll);
+                            oLLs.Add(ll);
+                        });
 
-                    // Creating patched outfit
-                    LeveledItem sLL = OutfitUtils.CreateLeveledList(PatchedMod, oLLs.Distinct().Reverse(), "sll_" + outfit.EditorID, 1, LeveledListFlag);
-                    Outfit newOutfit = PatchedMod.Outfits.AddNew(Patcher.LeveledListPrefix+outfit.EditorID);
-                    newOutfit.Items = new();
-                    newOutfit.Items.Add(sLL);
-                    AddOutfitToGroup(newOutfit);
+                        // Creating patched outfit
+                        LeveledItem sLL = OutfitUtils.CreateLeveledList(PatchedMod, oLLs.Distinct().Reverse(), "sll_" + outfit.EditorID, 1, Settings.LeveledListFlag);
+                        Outfit newOutfit = PatchedMod.Outfits.AddNew(Settings.PatcherSettings.LeveledListPrefix + outfit.EditorID);
+                        newOutfit.Items = new();
+                        newOutfit.Items.Add(sLL);
+                        AddOutfitToGroup(newOutfit);
+                    }                
                 }
             }
         }
         
         private void ProcessNpcsForOutfits()
         {
-            ISkyrimMod patch = FileUtils.GetOrAddPatch(Configuration.Patcher.PatcherPrefix + "NPC Outfits.esp");
+            ISkyrimMod patch = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "NPC Outfits.esp");
             //int processed = 0;
             //RandomSource rand = new();
             //ConcurrentDictionary<string, TNPC> npcs = new();
@@ -310,10 +313,10 @@ namespace OutFitPatcher.Managers
         private void AddOutfitToGroup(IOutfitGetter outfit)
         {
             string eid = outfit.EditorID;
-            var type = HelperUtils.GetRegexBasedGroup(Patcher.ArmorTypeRegex, eid);
+            var type = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.ArmorTypeRegex, eid);
             if (!type.Any()) type = new string[] { "" };
 
-            var groups = HelperUtils.GetRegexBasedGroup(Patcher.OutfitRegex, eid);
+            var groups = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, eid);
             groups.ForEach(f =>
             {
                 type.ForEach(eidType => {
@@ -336,7 +339,7 @@ namespace OutFitPatcher.Managers
             GrouppedArmorSets.Where(x => x.Key.EndsWith("Armor") || x.Key.EndsWith("Guards"))
                 .Select(x => x.Value.Outfits)
                 .ForEach(x => x.ForEach(o => {
-                    if (Patcher.Masters.Contains(o.Key.ModKey.FileName))
+                    if (Settings.PatcherSettings.Masters.Contains(o.Key.ModKey.FileName))
                         list.TryAdd(o.Key, o.Value);
                 }));
 
@@ -353,8 +356,8 @@ namespace OutFitPatcher.Managers
         private void GenerateArmorSlotData()
         {
             Logger.InfoFormat("Generating armor meshes data...");
-            var masters = User.ArmorModsForOutfits.Keys.ToList();
-            masters.AddRange(Patcher.Masters);
+            var masters = Settings.UserSettings.ArmorModsForOutfits.Keys.ToList();
+            masters.AddRange(State.LoadOrder.Where(x=> Settings.PatcherSettings.Masters.Contains(x.Key.FileName)).Select(x=>x.Key));
 
             var block = new ActionBlock<IArmorGetter>(
                 armor =>
@@ -364,7 +367,7 @@ namespace OutFitPatcher.Managers
                         ArmorsWithSlot[armorType] = new();
 
                     if (IsEligibleForMeshMapping(armor, armorType)
-                        && armor.Armature.FirstOrDefault().TryResolve<IArmorAddonGetter>(Cache, out var addon))
+                        && armor.Armature.FirstOrDefault().TryResolve<IArmorAddonGetter>(Settings.Cache, out var addon))
                     {
                         // Adding Armor sets
                         var slots = ArmorUtils.GetBodySlots(addon);
@@ -382,9 +385,9 @@ namespace OutFitPatcher.Managers
 
             foreach (IArmorGetter armor in State.LoadOrder.PriorityOrder
                 .Where(x =>
-                    !User.ModsToSkip.Contains(x.ModKey.FileName)
-                    && !User.SleepingOutfitMods.Contains(x.ModKey.FileName)
-                    && !User.JewelryMods.Contains(x.ModKey.FileName))
+                    !Settings.UserSettings.ModsToSkip.Contains(x.ModKey.FileName)
+                    && !Settings.UserSettings.SleepingOutfitMods.Contains(x.ModKey.FileName)
+                    && !Settings.UserSettings.JewelryMods.Contains(x.ModKey.FileName))
                 .WinningOverrides<IArmorGetter>()
                 .Where(x =>
                     ArmorUtils.IsValidArmor(x)

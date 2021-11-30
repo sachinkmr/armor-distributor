@@ -1,17 +1,10 @@
-﻿using Mutagen.Bethesda;
-using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Skyrim;
-using Mutagen.Bethesda.Synthesis;
-using System;
-using System.Collections.Concurrent;
+﻿using Mutagen.Bethesda.Plugins;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace OutFitPatcher.Config
 {
-    public class PatcherConfig
+    public class PatcherSettings
     {
         // Settings.json properties
         public string? InvalidOutfitRegex;

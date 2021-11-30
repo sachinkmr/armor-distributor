@@ -21,14 +21,14 @@ namespace OutFitPatcher.Managers
 
         public static void ProcessAndDistributeJewelary(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-            if (!Configuration.User.JewelryMods.Any()) return;
+            if (!Settings.UserSettings.JewelryMods.Any()) return;
             Logger.InfoFormat("Creating Leveled list for Jewelary.....");
-            ISkyrimMod patchedMod = FileUtils.GetOrAddPatch(Configuration.Patcher.PatcherPrefix+"Jewelry.esp");
+            ISkyrimMod patchedMod = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix+"Jewelry.esp");
             Dictionary<string, HashSet<IArmorGetter>> jewelleries = new();
 
             // Adding all the patches to load order
             foreach (IModListing<ISkyrimModGetter> modlist in state.LoadOrder.PriorityOrder
-                .Where(x => Configuration.User.JewelryMods.Contains(x.ModKey.FileName)
+                .Where<IModListing<ISkyrimModGetter>>(x => Settings.UserSettings.JewelryMods.Contains(x.ModKey.FileName)
                 && x.Mod.Armors.Count > 0))
             {
                 // Getting Jewelary Armors
@@ -40,7 +40,7 @@ namespace OutFitPatcher.Managers
                 for (int i = 0; i < armors.Count(); i++)
                 {
                     IArmorGetter armor = armors.ElementAtOrDefault(i);
-                    IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Configuration.Cache);
+                    IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Settings.State.LinkCache);
 
                     string gender = (addon.WorldModel.Male != null && addon.WorldModel.Female != null
                                     ? "_C_" : addon.WorldModel.Male == null ? "_F_" : "_M_");
@@ -53,7 +53,7 @@ namespace OutFitPatcher.Managers
             }
 
             // Creating leveled list for the jewelleries
-            string prefix = Configuration.Patcher.LeveledListPrefix + "_LL_Jewels_";
+            string prefix = Settings.PatcherSettings.LeveledListPrefix + "_LL_Jewels_";
             jewelleries.Where(x => !Regex.Match(x.Key.ToString(), "Decapitate", RegexOptions.IgnoreCase).Success)
                 .ForEach(j =>
                 {
@@ -76,12 +76,12 @@ namespace OutFitPatcher.Managers
             
 
             // Distributing jewelry
-            string jPrefix = Configuration.Patcher.LeveledListPrefix + "_LL_Jewels_";
+            string jPrefix = Settings.PatcherSettings.LeveledListPrefix + "_LL_Jewels_";
             foreach (ILeveledItemGetter ll in mod.LeveledItems
                 .Where(x => x.EditorID.Contains(jPrefix)))
             {
                 string eid = ll.EditorID;
-                string gender = Configuration.User.JewelryForMales 
+                string gender = Settings.UserSettings.JewelryForMales 
                     && Regex.Match(eid, "Amulet|Ring|Circlet", RegexOptions.IgnoreCase).Success
                     && !eid.Contains("_F_") ? "NONE" : "F";
                 string line = "Item = 0x00" +

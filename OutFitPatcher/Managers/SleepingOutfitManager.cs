@@ -12,7 +12,7 @@ using System;
 using System.Threading.Tasks.Dataflow;
 using System.Collections.Concurrent;
 using OutFitPatcher.Utils;
-using static OutFitPatcher.Config.Configuration;
+using static OutFitPatcher.Config.Settings;
 using log4net;
 using OutFitPatcher.Armor;
 using OutFitPatcher.Config;
@@ -28,7 +28,7 @@ namespace OutFitPatcher.Managers
         private readonly HashSet<FormKey> SleepingLLs;
         //private readonly IEnumerable<IItemGetter> LowerGarments;
         private readonly IPatcherState<ISkyrimMod, ISkyrimModGetter> State;
-        private readonly int MaleMeshCount = Patcher.MaleSleepingWears.Count;
+        private readonly int MaleMeshCount = Settings.PatcherSettings.MaleSleepingWears.Count;
         private static readonly ILog Logger = LogManager.GetLogger(typeof(SleepingOutfitManager));
 
         public SleepingOutfitManager(IPatcherState<ISkyrimMod, ISkyrimModGetter> State)
@@ -39,9 +39,9 @@ namespace OutFitPatcher.Managers
 
         public void ProcessSlepingOutfits()
         {
-            if (!User.SleepingOutfitMods.Any()) return;
-            
-            PatchedMod = FileUtils.GetOrAddPatch(Patcher.PatcherPrefix + "SleepTight.esp");
+            if (!Settings.UserSettings.SleepingOutfitMods.Any()) return;
+
+            PatchedMod = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "SleepTight.esp");
             string sleeptight = Path.Combine(State.DataFolderPath, "SleepTight.esp");
             if (ModKey.TryFromNameAndExtension("SleepTight.esp", out var modKey) && State.LoadOrder.ContainsKey(modKey))
             {
@@ -76,11 +76,11 @@ namespace OutFitPatcher.Managers
         {
             // For each armor mod getting armor records
             foreach (IModListing<ISkyrimModGetter> modlist in State.LoadOrder.PriorityOrder
-                .Where(x => (User.SleepingOutfitMods.Contains(x.ModKey.FileName))))
+                .Where<IModListing<ISkyrimModGetter>>(x => (Settings.UserSettings.SleepingOutfitMods.Contains(x.ModKey.FileName))))
             {
                 ISkyrimModGetter mod = modlist.Mod;
                 string modName = mod.ModKey.FileName;
-                string llPrefix = Patcher.SLPLeveledListPrefix;
+                string llPrefix = Settings.PatcherSettings.SLPLeveledListPrefix;
 
                 // Getting Armors
                 IEnumerable<IArmorGetter> armors = mod.Armors
@@ -102,7 +102,7 @@ namespace OutFitPatcher.Managers
                 {
                     var body = upperArmors.ElementAtOrDefault(i);
                     AddMissingGenderMeshes(body);
-                    
+
                     TArmorSet armorSet = new(body, PatchedMod);
                     armorSet.CreateMatchingSetFrom(nonBodies);
                     FormKey llKey = armorSet.CreateLeveledList();
@@ -124,7 +124,7 @@ namespace OutFitPatcher.Managers
             {
                 // Getting male robes                
                 int idx = Random.Next(0, MaleMeshCount);
-                FormKey key = FormKey.Factory(Patcher.MaleSleepingWears.ElementAt(idx));
+                FormKey key = FormKey.Factory(Settings.PatcherSettings.MaleSleepingWears.ElementAt(idx));
                 IArmorGetter robe = Cache.Resolve<IArmorGetter>(key);
                 IArmorAddonGetter robeAddon = robe.Armature.FirstOrDefault().Resolve(Cache);
 

@@ -94,7 +94,7 @@ namespace OutFitPatcher.Utils
             {
                 if (hasMultiItems && i % 250 == 0)
                 {
-                    sLL = CreateLeveledList(patch, new List<IItemGetter>(), lvli.EditorID + (++j), 1, Configuration.LeveledListFlag);
+                    sLL = CreateLeveledList(patch, new List<IItemGetter>(), lvli.EditorID + (++j), 1, Settings.LeveledListFlag);
                     AddItemToLeveledList(lvli, sLL, 1);
                 }
                 AddItemToLeveledList(sLL, items.ElementAtOrDefault(i), 1);
@@ -111,7 +111,7 @@ namespace OutFitPatcher.Utils
             {
                 if (hasMultiItems && i % 250 == 0)
                 {
-                    sLL = CreateLeveledList(patch, new List<ILeveledNpcGetter>(), lvli.EditorID + (++j), 1, Configuration.LeveledNpcFlag);
+                    sLL = CreateLeveledList(patch, new List<ILeveledNpcGetter>(), lvli.EditorID + (++j), 1, Settings.LeveledNpcFlag);
                     AddItemToLeveledList(lvli, sLL, 1);
                 }
                 AddItemToLeveledList(sLL, items.ElementAtOrDefault(i), 1);
@@ -128,7 +128,7 @@ namespace OutFitPatcher.Utils
             {
                 if (hasMultiItems && i % 250 == 0)
                 {
-                    sLL = CreateLeveledList(patch, new List<IItemGetter>(), lvli.EditorID + (++j), 1, Configuration.LeveledListFlag);
+                    sLL = CreateLeveledList(patch, new List<IItemGetter>(), lvli.EditorID + (++j), 1, Settings.LeveledListFlag);
                     AddItemToLeveledList(lvli, sLL, 1);
                 }
                 AddItemToLeveledList(sLL, items.ElementAtOrDefault(i), 1);
@@ -216,7 +216,7 @@ namespace OutFitPatcher.Utils
                 {
                     if (i % 250 == 0)
                     {
-                        sLL = CreateLeveledList(patch, new List<ILeveledNpcGetter>(), lvli.EditorID + i, 1, Configuration.LeveledNpcFlag);
+                        sLL = CreateLeveledList(patch, new List<ILeveledNpcGetter>(), lvli.EditorID + i, 1, Settings.LeveledNpcFlag);
                         AddItemToLeveledList(lvli, sLL, 1);
                     }
                     sLL.Entries.Add(items.ElementAtOrDefault(i));
@@ -227,7 +227,7 @@ namespace OutFitPatcher.Utils
 
         private static void GetArmorList(ILeveledItemGetter ll, List<IArmorGetter> armors, HashSet<FormKey> processed)
         {
-            ILinkCache cache = Configuration.Cache;
+            ILinkCache cache = Settings.State.LinkCache;
             ll.ContainedFormLinks.ForEach(i =>
             {
                 if (!processed.Contains(i.FormKey))
@@ -242,8 +242,8 @@ namespace OutFitPatcher.Utils
         }
 
         public static string getLLGender(ILeveledItemGetter ll) {
-            var matches = Regex.Matches(ll.EditorID, Configuration.Patcher.LeveledListPrefix + "[C|M|F|U]_");
-            return matches.Any() ? matches.First().Value.Replace(Configuration.Patcher.LeveledListPrefix, "").Replace("_", "") : "U";
+            var matches = Regex.Matches(ll.EditorID, Settings.PatcherSettings.LeveledListPrefix + "[C|M|F|U]_");
+            return matches.Any() ? matches.First().Value.Replace(Settings.PatcherSettings.LeveledListPrefix, "").Replace("_", "") : "U";
         }
     }
 }

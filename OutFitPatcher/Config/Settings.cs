@@ -1,6 +1,7 @@
 ﻿using log4net;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
+using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Plugins.Cache.Internals.Implementations;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
@@ -13,15 +14,16 @@ using System.Linq;
 
 namespace OutFitPatcher.Config
 {
-    public class Configuration
+    public class Settings
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(Configuration));
-        internal static PatcherConfig? Patcher;
-        internal static UserConfig? User;
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(Settings));
+        public static PatcherSettings? PatcherSettings;
+        public static UserSettings? UserSettings;
 
 
         // Properties
-        internal static MutableLoadOrderLinkCache<ISkyrimMod, ISkyrimModGetter>? Cache;
+        //internal static MutableLoadOrderLinkCache<ISkyrimMod, ISkyrimModGetter>? Cache;
+        internal static ILinkCache<ISkyrimMod, ISkyrimModGetter>? Cache;
         internal static LeveledItem.Flag LeveledListFlag;
         internal static LeveledNpc.Flag LeveledNpcFlag;
         internal static ConcurrentDictionary<string, ISkyrimMod>? Patches;
@@ -29,25 +31,19 @@ namespace OutFitPatcher.Config
 
         internal static HashSet<FormKey> NPCs2Skip=new();
         
-        internal static void Init(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
+        internal static void Init(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, UserSettings value)
         {
-            string configFile = Path.Combine(state.ExtraSettingsDataPath, "config", "patcher-settings.json");
-            Patcher = FileUtils.ReadJson<PatcherConfig>(configFile);
+            string ConfigFile = Path.Combine(state.ExtraSettingsDataPath, "config", "PatcherSettings.json");
+            PatcherSettings = FileUtils.ReadJson<PatcherSettings>(ConfigFile);
             Patches = new();
             State = state;
-            Cache = state.LoadOrder.ToMutableLinkCache();
+            Cache = state.LinkCache;
             
             LeveledListFlag = LeveledItem.Flag.CalculateForEachItemInCount.Or(LeveledItem.Flag.CalculateFromAllLevelsLessThanOrEqualPlayer);
             LeveledNpcFlag = LeveledNpc.Flag.CalculateForEachItemInCount.Or(LeveledNpc.Flag.CalculateFromAllLevelsLessThanOrEqualPlayer);
 
-            // Loading user defined data
-            configFile = Path.Combine(state.ExtraSettingsDataPath, "UserSettings.json");
-            User = FileUtils.ReadJson<UserConfig>(configFile);
-
-            User.NPCToSkip.ForEach(key => {
-                if (Cache.TryResolve<INpcGetter>(FormKey.Factory(key), out var npc))
-                    NPCs2Skip.Add(npc.FormKey);
-            });
+            UserSettings = value;
+            NPCs2Skip = value.NPCToSkip.ToHashSet();
             Logger.Info("Setting.json file is loaded...");
         }
     }

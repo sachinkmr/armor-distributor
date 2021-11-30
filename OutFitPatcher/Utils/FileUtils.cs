@@ -13,7 +13,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using static OutFitPatcher.Config.Configuration;
+using static OutFitPatcher.Config.Settings;
 
 
 namespace OutFitPatcher.Utils
@@ -69,10 +69,9 @@ namespace OutFitPatcher.Utils
 
             ISkyrimMod patch = new SkyrimMod(modKey, SkyrimRelease.SkyrimSE);
             Patches.TryAdd(modKey.FileName, patch);
-            Cache.Add(patch);
-            
-            //var x = ModListing<ISkyrimModGetter>.CreateEnabled(patch.ModKey);
-            //State.LoadOrder.Add((IModListing<ISkyrimModGetter>)x, State.LoadOrder.Count - 2);
+
+            var listing = new ModListing<ISkyrimModGetter>(patch, true);
+            State.LoadOrder.Add(listing);
 
             return patch;
         }

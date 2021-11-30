@@ -51,16 +51,16 @@ namespace OutFitPatcher.Utils
             // MAtching Clothing and Robes types
             string eid = armor.EditorID;
             string name = armor.Name == null || armor.Name.String == null ? "" : armor.Name.String;
-            var matches = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, armor.EditorID, name);
+            var matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, armor.EditorID, name);
             if (!matches.Any())
-                matches = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, name);
+                matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, name);
 
             if (!matches.Any())
-                matches = Configuration.Patcher.RobesType.Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
+                matches = Settings.PatcherSettings.RobesType.Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
             || Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
             
             if (!matches.Any())
-                matches = Configuration.Patcher.ClothesType
+                matches = Settings.PatcherSettings.ClothesType
                     .Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
                     || Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
             if (matches.Any()) 
@@ -76,7 +76,7 @@ namespace OutFitPatcher.Utils
         private static string GetItemMaterial(IArmorGetter armor)
         {
             Regex mRegex = new(@"(?:Armor|Weap(?:on)?)?Materi[ae]l(\w+)", RegexOptions.IgnoreCase);
-            ILinkCache cache = Configuration.Cache;
+            ILinkCache cache = Settings.Cache;
             if (armor.Keywords != null)
                 foreach (FormLink<IKeywordGetter> keyword in armor.Keywords)
                     if (ArmorMaterials.Contains(keyword))
@@ -85,7 +85,7 @@ namespace OutFitPatcher.Utils
                         return val.Groups[1].Value+"Armor";
                     }
             Logger.DebugFormat("Missing Armor Material Keyword: " + armor.FormKey.ToString());
-            var matches = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, armor.EditorID);
+            var matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, armor.EditorID);
             return matches.Any() ? matches.First() : "Unknown";
         }
 
@@ -110,20 +110,20 @@ namespace OutFitPatcher.Utils
         {
             return !armor.MajorFlags.HasFlag(Mutagen.Bethesda.Skyrim.Armor.MajorFlag.NonPlayable)
                     && armor.Armature != null && armor.Armature.Count > 0
-                    && (Regex.Match(armor.EditorID, Configuration.Patcher.ValidArmorsRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(armor.EditorID, Configuration.Patcher.InvalidArmorsRegex, RegexOptions.IgnoreCase).Success);
+                    && (Regex.Match(armor.EditorID, Settings.PatcherSettings.ValidArmorsRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(armor.EditorID, Settings.PatcherSettings.InvalidArmorsRegex, RegexOptions.IgnoreCase).Success);
         }
 
         public static bool IsValidOutfit(IOutfitGetter outfit)
         {
-            return Regex.Match(outfit.EditorID, Configuration.Patcher.ValidOutfitRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(outfit.EditorID, Configuration.Patcher.InvalidOutfitRegex, RegexOptions.IgnoreCase).Success;
+            return Regex.Match(outfit.EditorID, Settings.PatcherSettings.ValidOutfitRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(outfit.EditorID, Settings.PatcherSettings.InvalidOutfitRegex, RegexOptions.IgnoreCase).Success;
         }
 
         public static bool IsValidOutfit(string outfit)
         {
-            return Regex.Match(outfit, Configuration.Patcher.ValidOutfitRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(outfit, Configuration.Patcher.InvalidOutfitRegex, RegexOptions.IgnoreCase).Success;
+            return Regex.Match(outfit, Settings.PatcherSettings.ValidOutfitRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(outfit, Settings.PatcherSettings.InvalidOutfitRegex, RegexOptions.IgnoreCase).Success;
         }
 
         public static string GetArmorType(IArmorGetter armor)
@@ -148,14 +148,14 @@ namespace OutFitPatcher.Utils
                 return TArmorType.Helmet;
 
             if (IsCloth(armor))
-                return Regex.IsMatch(armor.EditorID, Configuration.Patcher.ArmorTypeRegex["Wizard"], RegexOptions.IgnoreCase)
+                return Regex.IsMatch(armor.EditorID, Settings.PatcherSettings.ArmorTypeRegex["Wizard"], RegexOptions.IgnoreCase)
                     || !armor.ObjectEffect.IsNull ? TArmorType.Wizard : TArmorType.Cloth;
             return TArmorType.Unknown;
         }
 
         public static string GetGender(IArmorGetter armor)
         {
-            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Configuration.Cache);
+            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Settings.Cache);
 
             if (addon.WorldModel == null) return TArmorGender.Unknown;
             if (addon.WorldModel.Male != null && addon.WorldModel.Female != null)
@@ -169,7 +169,7 @@ namespace OutFitPatcher.Utils
 
         public static IEnumerable<TBodySlot> GetBodySlots(IArmorGetter armor)
         {
-            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Configuration.Cache);
+            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Settings.Cache);
             return GetBodySlots(addon);
         }
 
@@ -182,7 +182,7 @@ namespace OutFitPatcher.Utils
 
         public static bool IsUpperArmor(IArmorGetter x)
         {
-            var addon = x.Armature.FirstOrDefault().Resolve(Configuration.Cache);
+            var addon = x.Armature.FirstOrDefault().Resolve(Settings.Cache);
             return addon.BodyTemplate.FirstPersonFlags.HasFlag(BipedObjectFlag.Body)
             || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.Chest)
             || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.ChestUnder);
@@ -197,20 +197,20 @@ namespace OutFitPatcher.Utils
 
         public static bool IsBodyArmor(IArmorGetter x)
         {
-            var addons = x.Armature.EmptyIfNull().Select(x => x.Resolve(Configuration.Cache));
+            var addons = x.Armature.EmptyIfNull().Select(x => x.Resolve(Settings.Cache));
             return addons.EmptyIfNull().Any(addon => addon.BodyTemplate.FirstPersonFlags.HasFlag(BipedObjectFlag.Body));
         }
 
         public static bool IsLowerArmor(IArmorGetter x)
         {
-            var addon = x.Armature.FirstOrDefault().Resolve(Configuration.Cache);
+            var addon = x.Armature.FirstOrDefault().Resolve(Settings.Cache);
             return addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.Pelvis)
             || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.PelvisUnder);
         }
 
         public static string GetOutfitArmorType(string outfitEID)
         {
-            var m = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.ArmorTypeRegex, outfitEID).ToList();            
+            var m = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.ArmorTypeRegex, outfitEID).ToList();            
             return !m.Any() ? "" : m.First();
         }
 
@@ -245,7 +245,7 @@ namespace OutFitPatcher.Utils
         {
             Logger.InfoFormat("Distributing Armor sets to Mannequins...");
 
-            ISkyrimMod patch = FileUtils.GetOrAddPatch(Configuration.Patcher.PatcherPrefix + "Mannequins.esp");
+            ISkyrimMod patch = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "Mannequins.esp");
             var form = patch.FormLists != null && patch.FormLists.Any()
                 ? patch.FormLists.First() : patch.FormLists.AddNew("MannequinsArmorForm");
 

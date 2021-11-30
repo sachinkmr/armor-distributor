@@ -1,13 +1,11 @@
 ﻿using log4net;
-using Mutagen.Bethesda;
 using Mutagen.Bethesda.Skyrim;
 using Noggog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using static OutFitPatcher.Config.Configuration;
+using static OutFitPatcher.Config.Settings;
 
 
 namespace OutFitPatcher.Utils
@@ -24,14 +22,14 @@ namespace OutFitPatcher.Utils
 
         public static bool IsValidFaction(IFactionGetter faction)
         {
-            return Regex.Match(faction.EditorID, Patcher.ValidFactionRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(faction.EditorID, Patcher.InvalidFactionRegex, RegexOptions.IgnoreCase).Success;
+            return Regex.Match(faction.EditorID, PatcherSettings.ValidFactionRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(faction.EditorID, PatcherSettings.InvalidFactionRegex, RegexOptions.IgnoreCase).Success;
         }
 
         public static bool IsValidFaction(string faction)
         {
-            return Regex.Match(faction, Patcher.ValidFactionRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(faction, Patcher.InvalidFactionRegex, RegexOptions.IgnoreCase).Success;
+            return Regex.Match(faction, PatcherSettings.ValidFactionRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(faction, PatcherSettings.InvalidFactionRegex, RegexOptions.IgnoreCase).Success;
         }
 
         public static IEnumerable<string> GetRegexBasedGroup(Dictionary<string, string> regx, string str, string? optionalStr = null)

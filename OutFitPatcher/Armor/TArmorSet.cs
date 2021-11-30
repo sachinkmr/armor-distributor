@@ -44,7 +44,7 @@ namespace OutFitPatcher.Armor
             Material = body.Material;
             Type = body.Type;
             Gender = body.Gender;
-            Prefix = Configuration.Patcher.LeveledListPrefix + Body.Gender + "_" + Body.EditorID;
+            Prefix = Settings.PatcherSettings.LeveledListPrefix + Body.Gender + "_" + Body.EditorID;
             Armors.Add(body);
             if (!hasPatch)
                 Patch = FileUtils.GetOrAddPatch(Body.FormKey.ModKey.FileName+" - LVLI.esp");

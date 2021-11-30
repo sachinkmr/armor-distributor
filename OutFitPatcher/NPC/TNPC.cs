@@ -39,15 +39,15 @@ namespace OutFitPatcher.NPC
             var npcClass = state.LinkCache.Resolve<IClassGetter>(npc.Class.FormKey);
             ClassEID = npcClass.EditorID;
 
-            ClassGroup = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, ClassEID).ToList();
-            NameGroup = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, EditorID).ToList();
+            ClassGroup = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, ClassEID).ToList();
+            NameGroup = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, EditorID).ToList();
             FactionGroup = new();
             var cache = state.LoadOrder.ToMutableLinkCache();
             npc.Factions.ForEach(facs =>
             {
                 if (facs.Faction.TryResolve<IFactionGetter>(cache, out var faction) && HelperUtils.IsValidFaction(faction.EditorID)) {
                     var fac = faction.EditorID;
-                    var list = HelperUtils.GetRegexBasedGroup(Configuration.Patcher.OutfitRegex, fac);
+                    var list = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, fac);
                     list.ForEach(l => FactionGroup[l] = fac);
                 }                
             });
@@ -61,8 +61,8 @@ namespace OutFitPatcher.NPC
                             : NameGroup.Count() > 0 ? NameGroup.Last() 
                             : ClassEID== "Citizen"? "CitizenRich":"Unknown";
             
-            if (Regex.IsMatch(Identifier, Configuration.Patcher.DividableFactions, RegexOptions.IgnoreCase)) {
-                Skill[]? skills = new Skill[] { Skill.HeavyArmor, Skill.LightArmor, Skill.Conjuration, Skill.Alteration,Skill.Destruction, Skill.Illusion, Skill.Restoration };
+            if (Regex.IsMatch(Identifier, Settings.PatcherSettings.DividableFactions, RegexOptions.IgnoreCase)) {
+                Skill[]? skills = new Skill[] { Skill.HeavyArmor, Skill.LightArmor, Skill.Conjuration, Skill.Alteration, Skill.Destruction, Skill.Illusion, Skill.Restoration };
                 var  allSkills = npc.PlayerSkills.SkillValues.Where(x => skills.Contains(x.Key));
                 var maxSkill = allSkills.OrderBy(x => x.Value)
                     .ToDictionary(x => x.Key, x => x.Value)

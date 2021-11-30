@@ -10,7 +10,7 @@ using OutFitPatcher.Utils;
 using log4net.Config;
 using log4net;
 using System.Reflection;
-using static OutFitPatcher.Config.Configuration;
+using static OutFitPatcher.Config.Settings;
 using OutFitPatcher.Managers;
 using OutFitPatcher.Config;
 using System;
@@ -39,7 +39,7 @@ namespace OutFitPatcher.Bodyslide
                 && NPCUtils.IsFemale(x)))
             {
                 
-                var npcRace = npc.Race.Resolve<IRaceGetter>(Configuration.Cache);
+                var npcRace = npc.Race.Resolve(Settings.State.LinkCache);
                 string race = npcRace.EditorID + " \"" + (npcRace.Name == null ? "" : npcRace.Name.String)
                     + "\" [RACE:" + npcRace.FormKey.IDString() + "]";
 
