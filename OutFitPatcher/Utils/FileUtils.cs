@@ -64,15 +64,18 @@ namespace OutFitPatcher.Utils
         {
             espName = espName.EndsWith(".esp") ? espName : espName + ".esp";
             ModKey modKey = ModKey.FromNameAndExtension(espName);
-            if (Patches.ContainsKey(modKey.FileName))
-                return Patches.GetValueOrDefault(modKey.FileName);
+
+            if (State.LoadOrder.HasMod(modKey))
+                return Patches.Find(x=>x.ModKey.Equals(modKey));
 
             ISkyrimMod patch = new SkyrimMod(modKey, SkyrimRelease.SkyrimSE);
-            Patches.TryAdd(modKey.FileName, patch);
+            Patches.Add(patch);
 
             var listing = new ModListing<ISkyrimModGetter>(patch, true);
+            var lastListing = State.LoadOrder[State.PatchMod.ModKey];
+            State.LoadOrder.RemoveKey(State.PatchMod.ModKey);
             State.LoadOrder.Add(listing);
-
+            State.LoadOrder.Add(lastListing);
             return patch;
         }
 

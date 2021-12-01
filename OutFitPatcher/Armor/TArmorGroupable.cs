@@ -67,7 +67,7 @@ namespace OutFitPatcher.Armor
         public void CreateGenderSpecificOutfits(ISkyrimMod? PatchedMod) {
             var GenderedArmors = Armors.GroupBy(x => x.Gender);
             var LLs = GenderedArmors.ToDictionary(x => x.Key,
-                x => x.Select(a => a.CreateLeveledList().AsLink<IItemGetter>()));
+                x => x.Select(a => a.CreateLeveledList(PatchedMod).AsLink<IItemGetter>()));
             LLs.ForEach(x => {
                 string eid = Settings.PatcherSettings.LeveledListPrefix + "mLL_" + Name + "_" + x.Key;
                 LeveledItem mLL = OutfitUtils.CreateLeveledList(PatchedMod, x.Value, eid, 1, LeveledListFlag);
@@ -75,12 +75,6 @@ namespace OutFitPatcher.Armor
                 newOutfit.Items = new(mLL.AsLink().AsEnumerable());
                 GenderOutfit[x.Key] = newOutfit.FormKey;
             });          
-        }
-
-        public IEnumerable<FormLink<IItemGetter>> GetLeveledListsUsingArmorSets(string gender="C")
-        {
-            return Armors.Where(x=>x.Gender== gender)
-                .Select(a => a.CreateLeveledList().AsLink<IItemGetter>()); ;
         }
 
         public override string? ToString()

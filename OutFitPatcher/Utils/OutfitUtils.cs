@@ -8,6 +8,7 @@ using Mutagen.Bethesda.Synthesis;
 using Noggog;
 using OutFitPatcher.Config;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -225,7 +226,7 @@ namespace OutFitPatcher.Utils
 
         }
 
-        private static void GetArmorList(ILeveledItemGetter ll, List<IArmorGetter> armors, HashSet<FormKey> processed)
+        public static void GetArmorList(IItemGetter ll, ICollection<IArmorGetter> armors, ConcurrentBag<FormKey> processed)
         {
             ILinkCache cache = Settings.State.LinkCache;
             ll.ContainedFormLinks.ForEach(i =>

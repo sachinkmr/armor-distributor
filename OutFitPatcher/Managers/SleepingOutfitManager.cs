@@ -105,7 +105,7 @@ namespace OutFitPatcher.Managers
 
                     TArmorSet armorSet = new(body, PatchedMod);
                     armorSet.CreateMatchingSetFrom(nonBodies);
-                    FormKey llKey = armorSet.CreateLeveledList();
+                    FormKey llKey = armorSet.CreateLeveledList(PatchedMod);
 
                     if (llKey == FormKey.Null) continue;
                     SleepingLLs.Add(llKey);

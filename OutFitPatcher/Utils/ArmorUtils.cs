@@ -250,7 +250,7 @@ namespace OutFitPatcher.Utils
                 ? patch.FormLists.First() : patch.FormLists.AddNew("MannequinsArmorForm");
 
             armorSets = armorSets.Distinct();
-            var lls = armorSets.Select(set => set.CreateLeveledList().AsLink<IItemGetter>());
+            var lls = armorSets.Select(set => set.CreateLeveledList(patch).AsLink<IItemGetter>());
             form.Items.AddRange(lls);
             Logger.InfoFormat("Distributed Armor sets to Mannequins...\n\n");
         }

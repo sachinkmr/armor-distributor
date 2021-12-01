@@ -29,6 +29,7 @@
       <None Remove="Data\config\patcher-settings - Copy.json" />
       <None Remove="Data\config\patcher-settings.json" />
       <None Remove="Data\settings - Copy.json" />
+      <None Remove="Data\UserSettings - Copy.json" />
       <None Remove="Data\UserSettings.json" />
       <Content Include="Data\config\bodyslots.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -38,6 +39,9 @@
       </Content>
       <Content Include="Data\config\patcher-settings.json">
         <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Data\UserSettings - Copy.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <Content Include="Data\UserSettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

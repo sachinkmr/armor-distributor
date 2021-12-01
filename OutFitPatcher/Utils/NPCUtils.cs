@@ -31,17 +31,17 @@ namespace OutFitPatcher.Utils
 
         public static bool IsValidNPC(INpcGetter npc) {
             return !Settings.NPCs2Skip.Contains(npc.FormKey) 
-                && !IsChild(npc) && isValidActorType(npc)
+                && !IsChild(npc) && IsValidActorType(npc)
                 && (Regex.IsMatch(npc.EditorID, Settings.PatcherSettings.ValidNpcRegex, RegexOptions.IgnoreCase)
                     || !Regex.IsMatch(npc.EditorID, Settings.PatcherSettings.InvalidNpcRegex, RegexOptions.IgnoreCase));
         }
 
-        public static bool isValidActorType(INpcGetter npc)
+        public static bool IsValidActorType(INpcGetter npc)
         {
-            return isValidActorType(npc, Settings.Cache);
+            return IsValidActorType(npc, Settings.Cache);
         }
 
-        public static bool isValidActorType(INpcGetter npc, ILinkCache cache)
+        public static bool IsValidActorType(INpcGetter npc, ILinkCache cache)
         {
             var r = cache.Resolve<IRaceGetter>(npc.Race.FormKey);
             return (r.HasKeyword(Skyrim.Keyword.ActorTypeNPC)

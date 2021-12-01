@@ -22,11 +22,10 @@ namespace OutFitPatcher.Config
 
 
         // Properties
-        //internal static MutableLoadOrderLinkCache<ISkyrimMod, ISkyrimModGetter>? Cache;
-        internal static ILinkCache<ISkyrimMod, ISkyrimModGetter>? Cache;
+        public static ILinkCache<ISkyrimMod, ISkyrimModGetter>? Cache;
         internal static LeveledItem.Flag LeveledListFlag;
         internal static LeveledNpc.Flag LeveledNpcFlag;
-        internal static ConcurrentDictionary<string, ISkyrimMod>? Patches;
+        internal static List<ISkyrimMod>? Patches;
         internal static  IPatcherState<ISkyrimMod, ISkyrimModGetter>? State;
 
         internal static HashSet<FormKey> NPCs2Skip=new();
