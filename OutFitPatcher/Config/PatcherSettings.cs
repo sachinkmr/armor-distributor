@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 
 
-namespace OutFitPatcher.Config
+namespace ArmorDistributor.Config
 {
     public class PatcherSettings
     {

@@ -3,9 +3,9 @@ using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
-using OutFitPatcher.Armor;
-using OutFitPatcher.Config;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Armor;
+using ArmorDistributor.Config;
+using ArmorDistributor.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace OutFitPatcher.NPC
+namespace ArmorDistributor.NPC
 {
     public class TNPC
     {

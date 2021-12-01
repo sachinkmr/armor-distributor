@@ -6,13 +6,13 @@ using Mutagen.Bethesda.Plugins.Cache.Internals.Implementations;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Utils;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace OutFitPatcher.Config
+namespace ArmorDistributor.Config
 {
     public class Settings
     {

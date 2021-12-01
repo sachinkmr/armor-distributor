@@ -6,7 +6,7 @@ using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Noggog;
-using OutFitPatcher.Config;
+using ArmorDistributor.Config;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
-namespace OutFitPatcher.Utils
+namespace ArmorDistributor.Utils
 {
     public class OutfitUtils
     {

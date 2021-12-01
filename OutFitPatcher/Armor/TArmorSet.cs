@@ -4,8 +4,8 @@ using Mutagen.Bethesda.FormKeys.SkyrimSE;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using Noggog;
-using OutFitPatcher.Config;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Config;
+using ArmorDistributor.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Dataflow;
 
-namespace OutFitPatcher.Armor
+namespace ArmorDistributor.Armor
 {
     public class TArmorSet
     {

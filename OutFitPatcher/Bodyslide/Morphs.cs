@@ -6,17 +6,17 @@ using Mutagen.Bethesda.Skyrim;
 using System.Threading.Tasks;
 using Noggog;
 using System.IO;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Utils;
 using log4net.Config;
 using log4net;
 using System.Reflection;
-using static OutFitPatcher.Config.Settings;
-using OutFitPatcher.Managers;
-using OutFitPatcher.Config;
+using static ArmorDistributor.Config.Settings;
+using ArmorDistributor.Managers;
+using ArmorDistributor.Config;
 using System;
 using System.Text.RegularExpressions;
 
-namespace OutFitPatcher.Bodyslide
+namespace ArmorDistributor.Bodyslide
 {
     public class Morphs
     {

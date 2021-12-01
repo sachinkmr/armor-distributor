@@ -6,18 +6,18 @@ using Mutagen.Bethesda.Skyrim;
 using System.Threading.Tasks;
 using Noggog;
 using System.IO;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Utils;
 using log4net.Config;
 using log4net;
 using System.Reflection;
-using static OutFitPatcher.Config.Settings;
-using OutFitPatcher.Managers;
+using static ArmorDistributor.Config.Settings;
+using ArmorDistributor.Managers;
 using System;
-using OutFitPatcher.NPC;
+using ArmorDistributor.NPC;
 using Mutagen.Bethesda.Plugins;
-using OutFitPatcher.Config;
+using ArmorDistributor.Config;
 
-namespace OutFitPatcher
+namespace ArmorDistributor
 {
     class Program
     {

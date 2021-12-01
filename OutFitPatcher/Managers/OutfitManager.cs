@@ -9,15 +9,15 @@ using System.Text.RegularExpressions;
 using System;
 using System.Threading.Tasks.Dataflow;
 using System.Collections.Concurrent;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Utils;
 using System.Collections.Generic;
 using System.Linq;
-using OutFitPatcher.Armor;
+using ArmorDistributor.Armor;
 using log4net;
-using OutFitPatcher.Config;
+using ArmorDistributor.Config;
 using Mutagen.Bethesda.Plugins;
 
-namespace OutFitPatcher.Managers
+namespace ArmorDistributor.Managers
 {
     public class OutfitManager
     {

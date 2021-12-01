@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.FormKeys.SkyrimSE;
 using Mutagen.Bethesda;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Utils;
 using System.Runtime.InteropServices;
 using Noggog;
 using System.Collections.Concurrent;
 
-namespace OutFitPatcher.Armor
+namespace ArmorDistributor.Armor
 {
     public class TArmorMaterial: TArmorGroupable
     {

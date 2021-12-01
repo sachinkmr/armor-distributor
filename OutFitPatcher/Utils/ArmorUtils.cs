@@ -5,14 +5,14 @@ using Mutagen.Bethesda.FormKeys.SkyrimSE;
 using Mutagen.Bethesda.Skyrim;
 using System.Text.RegularExpressions;
 using log4net;
-using OutFitPatcher.Armor;
-using OutFitPatcher.Config;
+using ArmorDistributor.Armor;
+using ArmorDistributor.Config;
 using Noggog;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache;
 using System;
 
-namespace OutFitPatcher.Utils
+namespace ArmorDistributor.Utils
 {
     public class ArmorUtils
     {

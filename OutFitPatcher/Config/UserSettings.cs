@@ -2,13 +2,13 @@
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Synthesis.Settings;
 using Mutagen.Bethesda.WPF.Reflection.Attributes;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace OutFitPatcher.Config
+namespace ArmorDistributor.Config
 {
     public class UserSettings
     {

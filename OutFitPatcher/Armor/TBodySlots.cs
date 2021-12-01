@@ -1,4 +1,4 @@
-﻿namespace OutFitPatcher.Armor
+﻿namespace ArmorDistributor.Armor
 {
     public enum TBodySlot : uint
     {

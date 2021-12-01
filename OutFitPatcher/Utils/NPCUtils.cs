@@ -2,7 +2,7 @@
 using Mutagen.Bethesda.FormKeys.SkyrimSE;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Skyrim;
-using OutFitPatcher.Config;
+using ArmorDistributor.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace OutFitPatcher.Utils
+namespace ArmorDistributor.Utils
 {
     public class NPCUtils
     {

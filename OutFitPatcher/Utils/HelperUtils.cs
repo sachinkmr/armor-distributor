@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using static OutFitPatcher.Config.Settings;
+using static ArmorDistributor.Config.Settings;
 
 
-namespace OutFitPatcher.Utils
+namespace ArmorDistributor.Utils
 {
 
     public static class HelperUtils

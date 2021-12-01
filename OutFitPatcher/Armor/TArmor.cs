@@ -4,9 +4,9 @@ using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using Noggog;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Utils;
 
-namespace OutFitPatcher.Armor
+namespace ArmorDistributor.Armor
 {
     public class TArmor
     {

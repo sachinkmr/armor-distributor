@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Utils;
 using Noggog;
 using System.Collections.Concurrent;
-using OutFitPatcher.Config;
+using ArmorDistributor.Config;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Cache.Internals.Implementations;
-using static OutFitPatcher.Config.Settings;
+using static ArmorDistributor.Config.Settings;
 
-namespace OutFitPatcher.Armor
+namespace ArmorDistributor.Armor
 {
     public abstract class TArmorGroupable
     {

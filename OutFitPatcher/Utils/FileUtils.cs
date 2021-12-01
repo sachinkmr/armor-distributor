@@ -13,10 +13,10 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using static OutFitPatcher.Config.Settings;
+using static ArmorDistributor.Config.Settings;
 
 
-namespace OutFitPatcher.Utils
+namespace ArmorDistributor.Utils
 {
     public static class FileUtils
     {

@@ -7,13 +7,13 @@ using Noggog;
 using System.IO;
 using System.Text.RegularExpressions;
 using System;
-using OutFitPatcher.Utils;
+using ArmorDistributor.Utils;
 using log4net;
-using OutFitPatcher.Config;
+using ArmorDistributor.Config;
 using Mutagen.Bethesda.Plugins.Cache;
 using Mutagen.Bethesda.Plugins.Order;
 
-namespace OutFitPatcher.Managers
+namespace ArmorDistributor.Managers
 {
     public class JewelaryManager
     {

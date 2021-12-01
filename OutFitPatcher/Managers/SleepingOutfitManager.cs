@@ -11,15 +11,15 @@ using System.Text.RegularExpressions;
 using System;
 using System.Threading.Tasks.Dataflow;
 using System.Collections.Concurrent;
-using OutFitPatcher.Utils;
-using static OutFitPatcher.Config.Settings;
+using ArmorDistributor.Utils;
+using static ArmorDistributor.Config.Settings;
 using log4net;
-using OutFitPatcher.Armor;
-using OutFitPatcher.Config;
+using ArmorDistributor.Armor;
+using ArmorDistributor.Config;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Order;
 
-namespace OutFitPatcher.Managers
+namespace ArmorDistributor.Managers
 {
     public class SleepingOutfitManager
     {
