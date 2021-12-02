@@ -39,9 +39,7 @@ namespace ArmorDistributor.Managers
         }
 
         public void Process()
-        {
-            
-
+        {   
             var outfits = GetPatchableOutfits();
             GroupOutfits(outfits);
 
@@ -52,7 +50,7 @@ namespace ArmorDistributor.Managers
             ResolveOutfitOverrides();
             FilterGaurdAndMaterialBasedOutfits();
             CreateNewOutfits();
-            ProcessNpcsForOutfits();
+            CreateSPIDFile();
         }
 
         private void IsPatchableArmor()
@@ -279,7 +277,7 @@ namespace ArmorDistributor.Managers
                     List<LeveledItem> oLLs = new();
                     if (lastNonModOutfit.Count() > 1)
                     {
-                        // Getting outfit records form armor mods added in the patcher and patchign those
+                        // Getting outfit records form armor mods added in the patcher and patching those
                         PatchedMod.Outfits.GetOrAddAsOverride(lastNonModOutfit.First().Record);                        
                     }
 
@@ -303,57 +301,26 @@ namespace ArmorDistributor.Managers
             }
         }
         
-        private void ProcessNpcsForOutfits()
+        private void CreateSPIDFile()
         {
-            ISkyrimMod patch = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "NPC Outfits.esp");
-            //int processed = 0;
-            //RandomSource rand = new();
-            //ConcurrentDictionary<string, TNPC> npcs = new();
-            //HashSet<string> missingId = new();
+            var SPIDList = new List<string>();
+            var sets = GrouppedArmorSets.Where(x => x.Value.Outfits.Any()).OrderBy(x=>x.Key);
 
-            //// NPC Patched Keyword and outfit Keywords
-            //Keyword kywrd = patch.Keywords.AddNew(Patcher.OutfitPatchedKeywordEID);
-            //Patcher.OutfitPatchedKeyword = kywrd.FormKey;
-            //Dictionary<string, Keyword> otftKywrds = new();
-
-            //List<FormKey> outfit2Skip = new();
-            //Materials.Values.Select(x => x.Outfits).ForEach(x => outfit2Skip.AddRange(x.Keys));
-            //Logger.InfoFormat("Outfit records processed...\n\n");
-
-            //// Adding Armor sets to Mannequins
-            //if (User.AddArmorsToMannequin)
-            //{
-            //    List<TArmorSet> armorSets = new();
-            //    mergedOutfits.Values.ForEach(x => armorSets.AddRange(x.Armors));
-            //    ArmorUtils.AddArmorsToMannequin(armorSets);
-            //}
-
-            //// Assiging outfits using SPID
-            //List<string> lines = new();
-            //string filters = User.FilterGurads ? "-0x"
-            //    +Skyrim.Faction.GuardDialogueFaction.FormKey.IDString(): "NONE";
-
-            //foreach (var k in otftKywrds.Keys) {
-            //    var id = k.Replace("_OTFT","");
-            //    mergedOutfits[id].GenderOutfit.ForEach(x=> {
-            //        if (x.Value != FormKey.Null && x.Key!="U") {
-            //            string line = "Outfit = 0x00" +
-            //                  x.Value.ToString().Replace(":", " - ") +
-            //                  " | " + k +
-            //                  " | " + filters + 
-            //                  " | NONE" +
-            //                  " | " + (x.Key=="C"? "NONE ":x.Key) +
-            //                  " | 1" +
-            //                  " | 75";
-            //            lines.Add(line);
-            //        }
-            //    });                
-            //}
-
-            //File.WriteAllLines(Path.Combine(State.DataFolderPath, "ZZZ_Patcher_NPC_OTFT_DISTR.ini"), lines);
-            //all["Missing"] = missingId;
-            //all["NPC"] = npcs;
-            //Logger.InfoFormat("Total NPC records processed: {0}...\n\n", processed);
+            foreach (var pair in sets) {
+                SPIDList.Add("; Outfits for " + pair.Key);
+                GrouppedArmorSets[pair.Key].GenderOutfit.Where(g=>!g.Value.Equals(FormKey.Null))
+                    .ForEach(x=> {
+                    var outfit = x.Value;
+                    var gender = x.Key == "M" ? "M" : x.Key == "C"?"C":"F";
+                    var outfits = GrouppedArmorSets[pair.Key].Outfits.Keys
+                        .Select(x=> "0x"+x.IDString()+"~"+x.ModKey.FileName);
+                    string line = String.Format("Outfit = 0x{0}~{1}|NONE|{2}|NONE|{3}|NONE|{4}", 
+                        outfit.IDString(), outfit.ModKey.FileName, string.Join(",", outfits), gender, 100);
+                    SPIDList.Add(line);
+                });
+                SPIDList.Add("\n\n");
+            }
+            File.WriteAllLines(Path.Combine(State.DataFolderPath, "ZZZ_Patcher_NPC_OTFT_DISTR.ini"), SPIDList);
         }
 
         private void AddOutfitToGroup(IOutfitGetter outfit)

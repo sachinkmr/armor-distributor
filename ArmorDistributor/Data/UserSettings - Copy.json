@@ -2,6 +2,7 @@
   "JewelryForMales": false,
   "AddArmorsToMannequin": false,
   "FilterGurads": true,
+  "DefaultOutfitPercentage": 10,
 
   "ModsToSkip": [
     "LegacyoftheDragonborn.esm",
