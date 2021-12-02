@@ -13,18 +13,6 @@ namespace ArmorDistributor.Config
 {
     public class UserSettings
     {
-        [Ignore]
-        [SynthesisOrder]
-        [JsonDiskName("JewelryForMales")]
-        [SynthesisTooltip("Males NPC will aslo has Jewelry")]
-        public bool JewelryForMales = false;
-
-        [Ignore]
-        [SynthesisOrder]
-        [JsonDiskName("AddArmorsToMannequin")]
-        [SynthesisTooltip("Mannequin will have outfits from armor mods")]
-        public bool AddArmorsToMannequin=false;
-
         [SynthesisOrder]
         [JsonDiskName("DefaultOutfitPercentage")]
         [SettingName("Distribute Default Outfits By: ")]
@@ -52,124 +40,133 @@ namespace ArmorDistributor.Config
         [JsonDiskName("NPCToSkip")]
         [SettingName("Skip NPCs: ")]
         [SynthesisTooltip("These npcs will be skipped")]
-        public HashSet<FormKey> NPCToSkip=new();
+        public HashSet<FormKey> NPCToSkip = new();
 
         [SynthesisOrder]
         [JsonDiskName("ModsToSkip")]
         [SettingName("Skip Mods: ")]
         [SynthesisTooltip("Select the mods which you dont want to use in patcher")]
-        public HashSet<ModKey> ModsToSkip=new();
+        public HashSet<ModKey> ModsToSkip = new();
+
+        [Ignore]
+        [JsonDiskName("ArmorModsForOutfits")]
+        public Dictionary<string, List<string>>? ArmorModsForOutfits;
+
+        [Ignore]
+        [SynthesisOrder]
+        [JsonDiskName("JewelryForMales")]
+        [SynthesisTooltip("Males NPC will aslo has Jewelry")]
+        public bool JewelryForMales = false;
+
+        [Ignore]
+        [SynthesisOrder]
+        [JsonDiskName("AddArmorsToMannequin")]
+        [SynthesisTooltip("Mannequin will have outfits from armor mods")]
+        public bool AddArmorsToMannequin = false;
 
         [Ignore]
         [SynthesisOrder]
         [JsonDiskName("JewelryMods")]
         [SynthesisTooltip("Mannequin will have outfits from armor mods")]
-        public HashSet<ModKey> JewelryMods=new();
+        public HashSet<ModKey> JewelryMods = new();
 
         [Ignore]
         [SynthesisOrder]
         [JsonDiskName("SleepingOutfitMods")]
         [SynthesisTooltip("Mannequin will have outfits from armor mods")]
-        public HashSet<ModKey> SleepingOutfitMods=new();
+        public HashSet<ModKey> SleepingOutfitMods = new();
 
-        [Ignore]
-        [JsonDiskName("ArmorModsForOutfits")]
-        public Dictionary<ModKey, List<string>>? ArmorModsForOutfits;
-
-        //public static List<string> GetCategories() {
-        //    var SettingFile = Path.Combine(Environment.CurrentDirectory, "Data", "config", "PatcherSettings.json");
-        //    Settings.PatcherSettings = FileUtils.ReadJson<PatcherSettings>(SettingFile);
-        //    List<string> list = new List<string>(Settings.PatcherSettings.OutfitRegex.Keys)
-        //        .Where(x => !x.EndsWith("Armor")).ToList();
-        //    foreach (var fac in Settings.PatcherSettings.DividableFactions.Split("|"))
-        //    {
-        //        Settings.PatcherSettings.ArmorTypeRegex.Keys.ForEach(a => list.Add(fac + a));
-        //    }
-        //    list = list.OrderBy(x => x).ToList();
-        //    return list;
-        //}        
+        public UserSettings()
+        {
+            ArmorModsForOutfits = ArmorMods.ToDictionary(x => x.ArmorMod.FileName.ToString(), 
+                x => x.Categories.Select(c => c.ToString()).ToList());
+            ArmorModsForOutfits.Values.ForEach(x => {
+                if (!x.Any()) x.Add(Categories.Generic.ToString());
+            });
+        }
     }
     public enum Percentage
     {
         _0 = 0, _10 = 10, _20 = 20, _30 = 30, _40 = 40, _50 = 50, _60 = 60, _70 = 70, _80 = 80, _90 = 90, _100 = 100
     }
 
+    
+
     public enum Categories {
         Generic,
-        Greybeard,
-        Skaal,
-        WeddingDress,
-        Dunmer,
         Altmer,
-        Bosmer,
-        Falmer,
-        Nord,
-        Breton,
-        Orc,
-        Vampire,
+        Archer,
         Argonian,
-        Khajiit,
-        FalkreathGuards,
-        HjaalmarchGuards,
-        ReachGuards,
-        PaleGuards,
-        RiftGuards,
-        HaafingarGuards,
-        WhiterunGuards,
-        EastmarchGuards,
-        WinterholdGuards,
-        ImperialGuards,
-        StormcloakGuards,
-        Housecarl,
-        Redguard,
-        Vigilant,
-        Thief,
-        Warrior,
-        WenchTavern,
-        Daedric,
-        Thalmor,
-        Imperial,
-        Stormcloak,
-        Dawnguard,
+        Assassin,
         Bandit,
-        Mercenary,
-        Forsworn,
-        CollegeWizard,
-        CourtWizard,
-        Psiijic,
         Bard,
+        BarKeeper,
+        Beggar,
         Blacksmith,
+        Blade,
+        Bosmer,
+        Breton,
+        Chef,
+        Child,
+        CitizenPoor,
+        CitizenRich,
+        CollegeWizard,
+        Companion,
+        CourtWizard,
+        Cultist,
+        Daedra,
+        Daedric,
+        DarkBrotherhood,
+        Dawnguard,
+        Dunmer,
+        EastmarchGuards,
+        FalkreathGuards,
+        Falmer,
+        Farmer,
+        Forsworn,
+        Greybeard,
+        HaafingarGuards,
+        Healer,
+        HjaalmarchGuards,
+        Housecarl,
+        Hunter,
+        Imperial,
+        ImperialGuards,
+        Jailor,
+        Jarl,
+        Khajiit,
+        Knight,
+        Lumberjack,
+        Mage,
+        Mercenary,
         Merchant,
         Miner,
-        Farmer,
-        BarKeeper,
-        Chef,
-        Hunter,
-        Companion,
-        DarkBrotherhood,
-        Servent,
-        Jarl,
-        Daedra,
-        Cultist,
-        Warlock,
-        Blade,
-        Sailor,
-        Lumberjack,
-        Traveller,
-        Prisoner,
-        Beggar,
-        CitizenRich,
-        CitizenPoor,
         Necromancer,
-        Mage,
-        Healer,
-        Archer,
-        Assassin,
-        Jailor,
-        Knight,
         Nightingale,
-        Child,
-        Psijic
+        Nord,
+        Orc,
+        PaleGuards,
+        Prisoner,
+        Psijic,
+        ReachGuards,
+        Redguard,
+        RiftGuards,
+        Sailor,
+        Servent,
+        Skaal,
+        Stormcloak,
+        StormcloakGuards,
+        Thalmor,
+        Thief,
+        Traveller,
+        Vampire,
+        Vigilant,
+        Warlock,
+        Warrior,
+        WeddingDress,
+        WenchTavern,
+        WhiterunGuards,
+        WinterholdGuards
     }
 
     public class ModCategory

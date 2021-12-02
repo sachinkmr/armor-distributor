@@ -1,10 +1,7 @@
 {
-  "JewelryForMales": false,
-  "AddArmorsToMannequin": false,
-  "FilterGurads": true,
   "CreateBashPatch": true,
   "DefaultOutfitPercentage": 10,
-
+  
   "ModsToSkip": [
     "LegacyoftheDragonborn.esm",
     "SometimesPickUpBooks.esp",
@@ -15,10 +12,12 @@
     "Guards Armor Replacer Minimal - Winter is Coming Patch.esp",
     "Summermyst - Enchantments of Skyrim.esp"
   ],
+  
   "NPCToSkip": [
     "2FEC35:RigmorCyrodiil.esm",
     "0FED35:Vigilant.esm"
   ],
+  
   "JewelryMods": [
     "ArcaneAmulets.esp",
     "AsharaParagonJewelry.esp",

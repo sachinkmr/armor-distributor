@@ -41,6 +41,8 @@ namespace ArmorDistributor
         private static void RunPacher(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             // Reading and Parsing setting file
+
+            Console.WriteLine("Settings loaded");
             Init(state, UserSettings.Value);
 
             if (!RequirementsFullfilled(state)) return;
@@ -120,12 +122,12 @@ namespace ArmorDistributor
                 }
             }
 
-            // Copying the scripts
-            var src = Path.Combine(state.ExtraSettingsDataPath, "Scripts");
-            var des = Path.Combine(state.DataFolderPath, "Scripts");
-            FileUtils.CopyDirectory(src, des);
+            //// Copying the scripts
+            //var src = Path.Combine(state.ExtraSettingsDataPath, "Scripts");
+            //var des = Path.Combine(state.DataFolderPath, "Scripts");
+            //FileUtils.CopyDirectory(src, des);
 
-            Logger.DebugFormat("All the requirements are validated...");
+            Logger.InfoFormat("All the requirements are validated...");
             return !patchExists;
         }
         

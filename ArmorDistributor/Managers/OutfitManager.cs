@@ -370,7 +370,7 @@ namespace ArmorDistributor.Managers
         {
             Logger.InfoFormat("Generating armor meshes data...");
             var masters = Settings.UserSettings.ArmorModsForOutfits.Keys.ToList();
-            masters.AddRange(State.LoadOrder.Where(x=> Settings.PatcherSettings.Masters.Contains(x.Key.FileName)).Select(x=>x.Key));
+            masters.AddRange(State.LoadOrder.Where(x=> Settings.PatcherSettings.Masters.Contains(x.Key.FileName)).Select(x=>x.Key.FileName.ToString()));
 
             var block = new ActionBlock<IArmorGetter>(
                 armor =>

@@ -108,7 +108,6 @@
     "Forsworn": "Forsworn|Forsw",
     "CollegeWizard": "College::BardsCollege",
     "CourtWizard": "Court",
-    "Psiijic": "Psiijic",
     "Bard": "JobBard::BardsCollege|Armor",
     "Blacksmith": "Blacksmith|Smithing::Armor|Enchant",
     "Merchant": "Merchant|Alchem|Vendor|Shop|Trader|Service|apothec::Blacksmith|Armor",
@@ -141,6 +140,6 @@
     "Knight": "Beserk|TwoHanded|Knight|Block|2H|Ebony|Tank",
     "Nightingale": "Nightingale",
     "Child": "Child",
-    "Psijic": "Psijic"
+    "Psijic": "Psijic|Psiijic"
   }
 }
