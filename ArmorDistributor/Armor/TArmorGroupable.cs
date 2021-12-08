@@ -17,7 +17,7 @@ namespace ArmorDistributor.Armor
     {
         public string Name { get; }
 
-        public Dictionary<string, FormKey> GenderOutfit;
+        public Dictionary<string, Dictionary<string, FormKey>> GenderOutfit;
 
         public ConcurrentBag<TArmorSet> Armors { get; }
 
@@ -28,10 +28,6 @@ namespace ArmorDistributor.Armor
             Armors = new();
             Outfits = new();
             GenderOutfit=new();
-            GenderOutfit.Add("M", FormKey.Null);
-            GenderOutfit.Add("C", FormKey.Null);
-            GenderOutfit.Add("F", FormKey.Null);
-            GenderOutfit.Add("U", FormKey.Null);
         }
 
         public void AddArmorSet(TArmorSet set)
@@ -64,17 +60,33 @@ namespace ArmorDistributor.Armor
             });
         }
 
-        public void CreateGenderSpecificOutfits(ISkyrimMod? PatchedMod) {
-            var GenderedArmors = Armors.GroupBy(x => x.Gender);
-            var LLs = GenderedArmors.ToDictionary(x => x.Key,
-                x => x.Select(a => a.CreateLeveledList(PatchedMod).AsLink<IItemGetter>()));
+        public void CreateOutfits(ISkyrimMod? PatchedMod)
+        {
+            var GenderedArmors = Armors.GroupBy(x => x.Gender).ToDictionary(x=> x.Key, x=>x.Select(a=>a));
+            var TypedArmors = Armors.GroupBy(x=>x.Type).ToDictionary(x => x.Key, x => x.Select(a => a));
+
+            Dictionary<string, List<FormLink<IItemGetter>>> LLs = new();
+            foreach (var gKey in GenderedArmors.Keys)
+            {
+                var gVal = GenderedArmors[gKey];
+                foreach (var aKey in TypedArmors.Keys) {
+                    var tVal = TypedArmors[aKey];
+                    var common = tVal.Intersect(gVal)
+                        .Select(a => a.CreateLeveledList(PatchedMod).AsLink<IItemGetter>())
+                        .ToList();
+                    LLs.Add(aKey+"_"+ gKey, common);
+                }
+            }
+
             LLs.ForEach(x => {
                 string eid = Settings.PatcherSettings.LeveledListPrefix + "mLL_" + Name + "_" + x.Key;
                 LeveledItem mLL = OutfitUtils.CreateLeveledList(PatchedMod, x.Value, eid, 1, LeveledListFlag);
                 Outfit newOutfit = PatchedMod.Outfits.AddNew(eid);
                 newOutfit.Items = new(mLL.AsLink().AsEnumerable());
-                GenderOutfit[x.Key] = newOutfit.FormKey;
-            });          
+
+                var keys = x.Key.Split("_");
+                GenderOutfit.GetOrAdd(keys[1]).Add(keys[0], newOutfit.FormKey);
+            });
         }
 
         public override string? ToString()

@@ -32,7 +32,6 @@ namespace ArmorDistributor.Armor
         public bool hasHalmet;
 
         private FormKey LLFormKey = FormKey.Null;
-        private FormKey OutfitFormKey = FormKey.Null;
 
         private readonly ISkyrimMod? Patch;
 

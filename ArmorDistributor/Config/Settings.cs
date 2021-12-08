@@ -29,6 +29,7 @@ namespace ArmorDistributor.Config
         internal static  IPatcherState<ISkyrimMod, ISkyrimModGetter>? State;
 
         internal static HashSet<FormKey> NPCs2Skip=new();
+        public static string? IniName;
         
         internal static void Init(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, UserSettings value)
         {
@@ -43,6 +44,7 @@ namespace ArmorDistributor.Config
 
             UserSettings = value;
             NPCs2Skip = value.NPCToSkip.ToHashSet();
+            IniName = PatcherSettings.PatcherPrefix + "Outfits_DISTR.ini";
             Logger.Info("Setting.json file is loaded...");
         }
     }

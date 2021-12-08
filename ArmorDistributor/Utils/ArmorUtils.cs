@@ -58,16 +58,18 @@ namespace ArmorDistributor.Utils
             if (!matches.Any())
                 matches = Settings.PatcherSettings.RobesType.Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
             || Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
-            
+            if (matches.Any())
+                return matches.First()=="Robe"?"Mage": matches.First();
+
             if (!matches.Any())
                 matches = Settings.PatcherSettings.ClothesType
                     .Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
                     || Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
             if (matches.Any()) 
                 return matches.First();
-            
+
             var type = "Unknown";
-            //if (!armor.ObjectEffect.IsNull) type= "Robes";
+            if (!armor.ObjectEffect.IsNull) type= "Mage";
             //type=armor.Value > 3 ? "Fine Clothes" : "Poor Clothes";
             Logger.DebugFormat("Unknown: {0}, {1} | Assigned: {2} ", eid, name, type);
             return type;

@@ -23,7 +23,7 @@ namespace ArmorDistributor.Config
         [JsonDiskName("FilterUniqueNPC")]
         [SettingName("Filter Unique NPC: ")]
         [SynthesisTooltip("Outfits will not be assigned to unique NPCs when seleted")]
-        public bool FilterUniqueNPC = true;
+        public bool FilterUniqueNPC = false;
 
         [SynthesisOrder]
         [JsonDiskName("CreateBashPatch")]
@@ -108,14 +108,12 @@ namespace ArmorDistributor.Config
         Breton,
         Chef,
         Child,
-        CitizenPoor,
-        CitizenRich,
+        Citizen,
         CollegeWizard,
         Companion,
         CourtWizard,
         Cultist,
         Daedra,
-        Daedric,
         DarkBrotherhood,
         Dawnguard,
         Dunmer,
@@ -154,6 +152,7 @@ namespace ArmorDistributor.Config
         Sailor,
         Servent,
         Skaal,
+        Slave,
         Stormcloak,
         StormcloakGuards,
         Thalmor,

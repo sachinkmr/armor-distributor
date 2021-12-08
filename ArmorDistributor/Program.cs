@@ -53,14 +53,15 @@ namespace ArmorDistributor
             //new SleepingOutfitManager(state).ProcessSlepingOutfits();
             new OutfitManager(state).Process();
 
-            // Little house keeping 
+            //// Little house keeping 
             CreateBashPatchForLVLI(state);
-            
+            CreateBashPatchForLVLN(state);
 
-            // Saving all the patches to disk
+            //// Saving all the patches to disk
             Logger.InfoFormat("Saving all the patches to disk.....");
             Patches.Add(state.PatchMod);
             Patches.ForEach(p => FileUtils.SaveMod(state, p));
+            Logger.InfoFormat("Enjoy");
         }
 
         private static void CreateBashPatchForLVLI(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
