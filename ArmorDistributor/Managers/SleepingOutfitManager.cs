@@ -104,7 +104,7 @@ namespace ArmorDistributor.Managers
                     AddMissingGenderMeshes(body);
 
                     TArmorSet armorSet = new(body, PatchedMod);
-                    armorSet.CreateMatchingSetFrom(nonBodies);
+                    armorSet.CreateMatchingSetFrom(nonBodies, false,new());
                     FormKey llKey = armorSet.CreateLeveledList(PatchedMod);
 
                     if (llKey == FormKey.Null) continue;

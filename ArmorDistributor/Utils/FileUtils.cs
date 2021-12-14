@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using ArmorDistributor.Config;
+using log4net;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Plugins.Binary;
@@ -29,7 +30,9 @@ namespace ArmorDistributor.Utils
             LightMasterLimit = LightMasterLimitOption.ExceptionOnOverflow,
             MastersListContent = MastersListContentOption.Iterate,
             FormIDUniqueness = FormIDUniquenessOption.Iterate,
-            NextFormID = NextFormIDOption.Iterate
+            NextFormID = NextFormIDOption.Iterate,
+            CleanNulls = true,
+            MastersListOrdering = MastersListOrderingByLoadOrder.Factory(Settings.State.LoadOrder.ListedOrder.Select(x=>x.ModKey))
         };
 
 

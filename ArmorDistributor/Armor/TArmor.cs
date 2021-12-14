@@ -26,7 +26,7 @@ namespace ArmorDistributor.Armor
             BodySlots = ArmorUtils.GetBodySlots(armor);
             Type = ArmorUtils.GetArmorType(armor);
             Gender = ArmorUtils.GetGender(armor);
-            Name = armor.Name == null || armor.Name.String.Length < 1 ? armor.EditorID : armor.Name.ToString();
+            Name = armor.Name == null || armor.Name.String.IsNullOrEmpty() ? HelperUtils.SplitString( armor.EditorID ): armor.Name.ToString();
         }
         public TArmor(IArmorGetter armor): 
             this(armor, ArmorUtils.GetMaterial(armor))

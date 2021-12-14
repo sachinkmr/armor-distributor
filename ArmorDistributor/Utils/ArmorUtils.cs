@@ -93,11 +93,6 @@ namespace ArmorDistributor.Utils
 
         public static string GetMaterial(IArmorGetter item)
         {
-            if (item.HasKeyword(Skyrim.Keyword.ArmorJewelry)
-                || item.HasKeyword(Skyrim.Keyword.ClothingNecklace)
-                || item.HasKeyword(Skyrim.Keyword.VendorItemJewelry))
-                return TArmorType.Jewelry;
-
             return !IsCloth(item) ? GetItemMaterial(item) :
                 HelperUtils.ToCamelCase(GetClothingType((IArmorGetter)item));
         }
@@ -130,29 +125,31 @@ namespace ArmorDistributor.Utils
 
         public static string GetArmorType(IArmorGetter armor)
         {
-            if (armor.HasKeyword(Skyrim.Keyword.ArmorJewelry)
-                || armor.HasKeyword(Skyrim.Keyword.ClothingNecklace)
-                || armor.HasKeyword(Skyrim.Keyword.VendorItemJewelry))
-                return TArmorType.Jewelry;
-
-            if (armor.HasKeyword(Skyrim.Keyword.ArmorShield))
-                return TArmorType.Shield;
-
-            if (armor.HasKeyword(Skyrim.Keyword.ArmorHeavy)
-                || armor.BodyTemplate.ArmorType.Equals(ArmorType.HeavyArmor))
-                return TArmorType.Heavy;
-
-            if (armor.HasKeyword(Skyrim.Keyword.ArmorLight)
-                || armor.BodyTemplate.ArmorType.Equals(ArmorType.LightArmor))
-                return TArmorType.Light;
-
-            if (armor.HasKeyword(Skyrim.Keyword.ArmorHelmet))
-                return TArmorType.Helmet;
-
             if (IsCloth(armor))
                 return Regex.IsMatch(armor.EditorID, Settings.PatcherSettings.ArmorTypeRegex["Wizard"], RegexOptions.IgnoreCase)
                     || !armor.ObjectEffect.IsNull ? TArmorType.Wizard : TArmorType.Cloth;
-            return TArmorType.Unknown;
+            return armor.BodyTemplate.ArmorType == ArmorType.HeavyArmor ? TArmorType.Heavy : TArmorType.Light;
+
+            //if (armor.HasKeyword(Skyrim.Keyword.ArmorJewelry)
+            //    || armor.HasKeyword(Skyrim.Keyword.ClothingNecklace)
+            //    || armor.HasKeyword(Skyrim.Keyword.VendorItemJewelry))
+            //    return TArmorType.Jewelry;
+
+
+            //if (armor.HasKeyword(Skyrim.Keyword.ArmorShield))
+            //    return TArmorType.Shield;
+
+            //if (armor.HasKeyword(Skyrim.Keyword.ArmorHeavy)
+            //    || armor.BodyTemplate.ArmorType.Equals(ArmorType.HeavyArmor))
+            //    return TArmorType.Heavy;
+
+            //if (armor.HasKeyword(Skyrim.Keyword.ArmorLight)
+            //    || armor.BodyTemplate.ArmorType.Equals(ArmorType.LightArmor))
+            //    return TArmorType.Light;
+
+            //if (armor.HasKeyword(Skyrim.Keyword.ArmorHelmet))
+            //    return TArmorType.Helmet;
+            //return TArmorType.Unknown;
         }
 
         public static string GetGender(IArmorGetter armor)
@@ -208,6 +205,11 @@ namespace ArmorDistributor.Utils
             var addon = x.Armature.FirstOrDefault().Resolve(Settings.Cache);
             return addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.Pelvis)
             || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.PelvisUnder);
+        }
+
+        public static bool IsJewelry(IArmorGetter x) {
+            return x.HasKeyword(Skyrim.Keyword.ArmorJewelry)
+                || x.HasKeyword(Skyrim.Keyword.ClothingNecklace);
         }
 
         public static string GetOutfitArmorType(string outfitEID)

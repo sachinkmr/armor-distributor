@@ -27,24 +27,23 @@
       <None Remove="OldCode\**" />
       <Compile Remove="NPC\CombatStyle.cs" />
       <None Remove="Data\config\bodyslots.json" />
-      <None Remove="Data\config\patcher-settings - Copy.json" />
       <None Remove="Data\config\patcher-settings.json" />
+      <None Remove="Data\DefaultUserSettings.json" />
       <None Remove="Data\settings - Copy.json" />
-      <None Remove="Data\UserSettings - Copy.json" />
       <None Remove="Data\UserSettings.json" />
       <Content Include="Data\config\bodyslots.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <Content Include="Data\config\patcher-settings - Copy.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-      <Content Include="Data\UserSettings - Copy.json">
+      <Content Include="Data\DefaultUserSettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <Content Include="Data\UserSettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <None Include="NPC\CombatStyle.cs" />
+      <None Update="Data\config\DefaultPatcherSettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
       <None Update="Data\config\PatcherSettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

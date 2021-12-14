@@ -13,6 +13,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks.Dataflow;
+using Mutagen.Bethesda.Strings;
 
 namespace ArmorDistributor.Armor
 {
@@ -149,41 +150,41 @@ namespace ArmorDistributor.Armor
             else if(addAll || (!matched && bodyCounts < 5)) this.AddWeapons(weapons);
         }
 
-        public void CreateMatchingSetFrom(IEnumerable<IArmorGetter> others, bool addAll = false)
+        public void CreateMatchingSetFrom(IEnumerable<IArmorGetter> others, bool addAll, int commonStrCount)
         {
-            ConcurrentDictionary<string, ConcurrentDictionary<string, TArmor>> matchedArmors1 = new();
-            IEnumerable<TArmor> armorParts = others
-                .Where(x => Type.Equals(ArmorUtils.GetArmorType(x))
-                    && (ArmorUtils.GetMaterial(x).Equals(Material)
-                    || x.HasKeyword(Skyrim.Keyword.ArmorJewelry)))
-                .Select(x => new TArmor(x));
+            CreateMatchingSetFrom(others.Select(x => new TArmor(x)), addAll, commonStrCount);
+        }
+
+        public void CreateMatchingSetFrom(IEnumerable<TArmor> others, bool addAll, int commonStrCount)
+        {
             if (!addAll)
             {
-                var block = new ActionBlock<TArmor>(
-                   armor =>
-                   {
-                       var armorName = armor.Name;
-                       if (HelperUtils.GetMatchingWordCount(Body.Name, armorName) > 0)
-                           armor.BodySlots.Select(x => x.ToString()).ForEach(flag =>
-                           {
-                               if (!matchedArmors1.ContainsKey(flag)) matchedArmors1.TryAdd(flag,
-                               new ConcurrentDictionary<string, TArmor>());
-                               matchedArmors1.GetValueOrDefault(flag)
-                                .TryAdd(HelperUtils.GetMatchingWordCount(Body.Name, armorName).ToString(), armor);
-                   });
-               }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 30 });
+                ConcurrentDictionary<TBodySlot, ConcurrentDictionary<int, TArmor>> armors = new();
+                IEnumerable<TArmor> armorParts = others
+                    .Where(x => Type.Equals(x.Type));
 
-                foreach (var armor in armorParts)                
-                    block.Post(armor);
-                block.Complete();
-                block.Completion.Wait();
+                if (!armorParts.Any())
+                {
+                    Logger.DebugFormat("No matching armor found for {0}: {1}", Body.EditorID, Body.FormKey);
+                    return;
+                }
+                var bname = Body.Name;
+                var beid = HelperUtils.SplitString(Body.EditorID);
 
-                var armors = matchedArmors1.Values.Select(x => x.OrderBy(k => k.Key).Last().Value);
-                this.AddArmors(armors);
-                Logger.DebugFormat("Created Armors Set: {0}=> [{1}]", Body.FormKey.ModKey.FileName, 
+                foreach (var a in armorParts) {
+                    var aname = a.Name;
+                    var aeid = HelperUtils.SplitString(a.EditorID);
+                    int c = HelperUtils.GetMatchingWordCount(bname, aname) - commonStrCount;
+                    int d = HelperUtils.GetMatchingWordCount(beid, aeid);
+                    if (c > 0) a.BodySlots.ForEach(flag => armors.GetOrAdd(flag).TryAdd(c, a));
+                }
+
+                var marmors = armors.Values.Select(x => x.OrderBy(k => k.Key).Last().Value);
+                this.AddArmors(marmors);
+                Logger.DebugFormat("Created Armors Set: {0}=> [{1}]", Body.FormKey.ToString(),
                     string.Join(", ", Armors.Select(x => x.Name)));
             }
-            else this.AddArmors(armorParts);            
+            else this.AddArmors(others);
         }
     }
 }

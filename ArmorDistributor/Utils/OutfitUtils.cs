@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using ArmorDistributor.Armor;
 
 namespace ArmorDistributor.Utils
 {
@@ -62,7 +63,6 @@ namespace ArmorDistributor.Utils
             return lvli;
         }
 
-
         public static LeveledItem CreateLeveledList(ISkyrimMod PatchMod, IEnumerable<IFormLink<IItemGetter>> items, string editorID, short level, LeveledItem.Flag flag)
         {
             if (lls.ContainsKey(editorID))
@@ -83,7 +83,6 @@ namespace ArmorDistributor.Utils
             lls.TryAdd(editorID, lvli.FormKey);
             return lvli;
         }
-
 
         public static void AddItemsToLeveledList(ISkyrimMod patch, LeveledItem lvli, IEnumerable<IItemGetter> items,short level)
         {
@@ -135,7 +134,6 @@ namespace ArmorDistributor.Utils
                 AddItemToLeveledList(sLL, items.ElementAtOrDefault(i), 1);
             }
         }
-
 
         public static void AddItemToLeveledList(LeveledItem lvli, IItemGetter item, short level)
         {
@@ -206,7 +204,6 @@ namespace ArmorDistributor.Utils
 
         }
 
-
         public static void AddEntriesToLeveledList(ISkyrimMod patch, LeveledNpc lvli, IEnumerable<LeveledNpcEntry> items)
         {
             if (items.Count() < 255) items.ForEach(item => lvli.Entries.Add(item));
@@ -245,6 +242,42 @@ namespace ArmorDistributor.Utils
         public static string getLLGender(ILeveledItemGetter ll) {
             var matches = Regex.Matches(ll.EditorID, Settings.PatcherSettings.LeveledListPrefix + "[C|M|F|U]_");
             return matches.Any() ? matches.First().Value.Replace(Settings.PatcherSettings.LeveledListPrefix, "").Replace("_", "") : "U";
+        }
+
+        public static string GetOutfitArmorType(IOutfitGetter o) {
+            var cache = Settings.Cache;
+            ConcurrentBag<FormKey> ArmorsFormKey = new();
+            var items = o.Items;
+            try {
+                return o.Items.Select(i => {
+                    var item = i.Resolve<IItemGetter>(cache);
+                    if (item is IArmorGetter)
+                        return ArmorUtils.GetArmorType((IArmorGetter)item);
+                    else
+                    {
+                        List<IArmorGetter> armors = new();
+                        GetArmorList(item, armors, ArmorsFormKey);
+                        var armor = armors.Where(a => ArmorUtils.IsBodyArmor(a));
+                        return armor.Any() ? ArmorUtils.GetArmorType(armor.First()) : "";
+                    }
+                }).Where(x => x== TArmorType.Cloth
+                            || x == TArmorType.Heavy
+                            || x == TArmorType.Light
+                            || x == TArmorType.Wizard)
+                .Distinct().First();
+            } catch {
+                return TArmorType.Unknown;
+            }
+        }
+        
+        public static string GetOutfitArmorType(string eid)
+        {
+            return GetOutfitArmorType(Settings.Cache.Resolve<IOutfitGetter>(eid));            
+        }
+
+        public static string GetOutfitArmorType(FormKey key)
+        {
+            return GetOutfitArmorType(Settings.Cache.Resolve<IOutfitGetter>(key));
         }
     }
 }

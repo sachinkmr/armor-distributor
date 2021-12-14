@@ -82,10 +82,19 @@ namespace ArmorDistributor.Utils
             return s1.Substring(row - a[row, col], a[row, col]);
         }
 
+        public static HashSet<string> GetCommonItems(List<string> list)
+        {
+            if (!list.Any()) return new();
+            var hash = new HashSet<string>(list.First().Split(' '));
+            for (int i = 1; i < list.Count; i++)
+                hash.IntersectWith(list[i].Split(' '));
+            return hash;
+        }
+
         public static int GetMatchingWordCount(string strOne, string strTwo)
         {
-            strOne = SplitString(strOne).Replace("DE", "");
-            strTwo = SplitString(strTwo).Replace("DE", "");
+            strOne = SplitString(strOne);
+            strTwo = SplitString(strTwo);
 
             var tokensOne = strOne.Split(" ", StringSplitOptions.RemoveEmptyEntries);
             var list = tokensOne.Where(x => strTwo.Contains(x));
