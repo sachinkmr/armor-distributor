@@ -22,6 +22,20 @@ namespace ArmorDistributor.Utils
         private static readonly ILog Logger = LogManager.GetLogger(typeof(OutfitUtils));
         private static Dictionary<string, FormKey> lls = new();
 
+
+        public static bool IsValidOutfit(IOutfitGetter outfit)
+        {
+            return Regex.Match(outfit.EditorID, Settings.PatcherSettings.ValidOutfitRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(outfit.EditorID, Settings.PatcherSettings.InvalidOutfitRegex, RegexOptions.IgnoreCase).Success;
+        }
+
+        public static bool IsValidOutfit(string outfit)
+        {
+            return Regex.Match(outfit, Settings.PatcherSettings.ValidOutfitRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(outfit, Settings.PatcherSettings.InvalidOutfitRegex, RegexOptions.IgnoreCase).Success;
+        }
+
+
         public static LeveledItem CreateLeveledList(ISkyrimMod PatchMod, IEnumerable<IItemGetter> items, string editorID, short level, LeveledItem.Flag flag)
         {
             if (lls.ContainsKey(editorID)) {
@@ -32,7 +46,7 @@ namespace ArmorDistributor.Utils
                 else
                     editorID += "_dup";
             }
-
+            PatchMod = FileUtils.GetIncrementedMod(PatchMod);
             LeveledItem lvli = PatchMod.LeveledItems.AddNew(editorID);
             lvli.Entries = new ExtendedList<LeveledItemEntry>();
             lvli.Flags = flag;
@@ -53,7 +67,7 @@ namespace ArmorDistributor.Utils
                     else
                         editorID += "_dup";
             }
-
+            PatchMod = FileUtils.GetIncrementedMod(PatchMod);
             LeveledNpc lvli = PatchMod.LeveledNpcs.AddNew(editorID);
             lvli.Entries = new ();
             lvli.Flags = flag;
@@ -61,6 +75,14 @@ namespace ArmorDistributor.Utils
             AddItemsToLeveledList(PatchMod, lvli, items, 1);
             lls.TryAdd(editorID, lvli.FormKey);
             return lvli;
+        }
+
+        internal static Outfit CreateOutfit(ISkyrimMod? PatchedMod, string eid, IEnumerable<FormLink<IItemGetter>> set)
+        {
+            LeveledItem mLL = CreateLeveledList(PatchedMod, set, "mLL_" + eid, 1, Settings.LeveledListFlag);
+            Outfit newOutfit = PatchedMod.Outfits.AddNew(Settings.PatcherSettings.OutfitPrefix + eid + Settings.PatcherSettings.OutfitSuffix);
+            newOutfit.Items = new(mLL.AsLink().AsEnumerable());
+            return newOutfit;
         }
 
         public static LeveledItem CreateLeveledList(ISkyrimMod PatchMod, IEnumerable<IFormLink<IItemGetter>> items, string editorID, short level, LeveledItem.Flag flag)
@@ -73,8 +95,9 @@ namespace ArmorDistributor.Utils
                         return ll;
                 else
                     editorID += "_dup";
-            }                
+            }
 
+            PatchMod = FileUtils.GetIncrementedMod(PatchMod);
             LeveledItem lvli = PatchMod.LeveledItems.AddNew(editorID);
             lvli.Entries = new ExtendedList<LeveledItemEntry>();
             lvli.Flags = flag;
@@ -82,6 +105,23 @@ namespace ArmorDistributor.Utils
             AddItemsToLeveledList(PatchMod, lvli, items, 1);
             lls.TryAdd(editorID, lvli.FormKey);
             return lvli;
+        }
+
+        internal static void FixLeveledList(ILeveledItemGetter lvli, HashSet<FormKey> set, Dictionary<FormKey, List<FormKey>> parentChildLL, ILinkCache mCache)
+        {
+            set.Add(lvli.FormKey);
+            if (lvli.Entries==null && !lvli.Entries.Any()) return;
+            var itms = lvli.Entries.Select(i => mCache.Resolve<IItemGetter>(i.Data.Reference.FormKey));
+            foreach (var itm in itms) {
+                if (set.Contains(lvli.FormKey))
+                {
+                    parentChildLL.GetOrAdd(lvli.FormKey).Add(itm.FormKey);
+                }
+                else { 
+                    if (itm is ILeveledItemGetter) 
+                        FixLeveledList((ILeveledItemGetter)itm, set, parentChildLL,mCache);
+                }
+            }
         }
 
         public static void AddItemsToLeveledList(ISkyrimMod patch, LeveledItem lvli, IEnumerable<IItemGetter> items,short level)
@@ -168,21 +208,32 @@ namespace ArmorDistributor.Utils
             lvli.Entries.Add(entry);
         }
 
-        public static Outfit CreateOutfit(ISkyrimMod patch, IEnumerable<IFormLinkGetter<IOutfitTargetGetter>> items, string prefix)
+        public static Outfit CreateOutfit(ISkyrimMod patch, string eid, IEnumerable<IFormLinkGetter<IOutfitTargetGetter>> items)
         {
+            patch = FileUtils.GetIncrementedMod(patch);
             Outfit otft = patch.Outfits.AddNew();
-            otft.EditorID = prefix + "_OTFT";
+            otft.EditorID = Settings.PatcherSettings.OutfitPrefix+eid + Settings.PatcherSettings.OutfitSuffix;
             otft.Items = new(items);
             return otft;
         }
 
-        public static Outfit CreateOutfit(ISkyrimMod patch, IFormLinkGetter<IOutfitTargetGetter> item, string prefix)
+        public static Outfit CreateOutfit(ISkyrimMod patch, string eid, IFormLinkGetter<IOutfitTargetGetter> item)
         {
+            patch = FileUtils.GetIncrementedMod(patch);
             Outfit otft = patch.Outfits.AddNew();
-            otft.EditorID = prefix + "_OTFT";
+            otft.EditorID = Settings.PatcherSettings.OutfitPrefix + eid + Settings.PatcherSettings.OutfitSuffix;
             otft.Items = new();
             otft.Items.Add(item);
             return otft;
+        }
+        internal static Outfit CreateOutfit(ISkyrimMod patchedMod, string eid, List<IItemGetter> items)
+        {
+            LeveledItem mLL = CreateLeveledList(patchedMod, items, "mLL_" + eid, 1, Settings.LeveledListFlag);
+
+            patchedMod = FileUtils.GetIncrementedMod(patchedMod);
+            Outfit newOutfit = patchedMod.Outfits.AddNew(Settings.PatcherSettings.OutfitPrefix + eid + Settings.PatcherSettings.OutfitSuffix);
+            newOutfit.Items = new(mLL.AsLink().AsEnumerable());
+            return newOutfit;
         }
 
         public static void AddEntriesToLeveledList(ISkyrimMod patch, LeveledItem lvli, IEnumerable<LeveledItemEntry> items)
@@ -244,7 +295,7 @@ namespace ArmorDistributor.Utils
             return matches.Any() ? matches.First().Value.Replace(Settings.PatcherSettings.LeveledListPrefix, "").Replace("_", "") : "U";
         }
 
-        public static string GetOutfitArmorType(IOutfitGetter o) {
+        public static List<string> GetOutfitArmorType(IOutfitGetter o) {
             var cache = Settings.Cache;
             ConcurrentBag<FormKey> ArmorsFormKey = new();
             var items = o.Items;
@@ -257,27 +308,100 @@ namespace ArmorDistributor.Utils
                     {
                         List<IArmorGetter> armors = new();
                         GetArmorList(item, armors, ArmorsFormKey);
+                        if (!armors.Any()) return TArmorType.Unknown;
                         var armor = armors.Where(a => ArmorUtils.IsBodyArmor(a));
-                        return armor.Any() ? ArmorUtils.GetArmorType(armor.First()) : "";
+                        return armor.Any() ? ArmorUtils.GetArmorType(armor.First()) 
+                            : ArmorUtils.GetArmorType(armors.First());
                     }
-                }).Where(x => x== TArmorType.Cloth
-                            || x == TArmorType.Heavy
-                            || x == TArmorType.Light
-                            || x == TArmorType.Wizard)
-                .Distinct().First();
+                }).Distinct().ToList();
             } catch {
-                return TArmorType.Unknown;
+                return new List<string>() { TArmorType.Unknown };
             }
         }
         
-        public static string GetOutfitArmorType(string eid)
+        public static List<string> GetOutfitArmorType(string eid)
         {
             return GetOutfitArmorType(Settings.Cache.Resolve<IOutfitGetter>(eid));            
         }
 
-        public static string GetOutfitArmorType(FormKey key)
+        public static List<string> GetOutfitArmorType(FormKey key)
         {
             return GetOutfitArmorType(Settings.Cache.Resolve<IOutfitGetter>(key));
         }
+
+        public static HashSet<FormKey> GetLeveledLists(IItemGetter ll) {
+            HashSet<FormKey> processed = new();
+            GetSubLeveledLists(ll, processed) ;
+            return processed;
+        }
+
+        private static void GetSubLeveledLists(IItemGetter ll, HashSet<FormKey> LLs)
+        {
+            ILinkCache cache = Settings.State.LinkCache;
+            ll.ContainedFormLinks.ForEach(i =>
+            {
+                if (!LLs.Contains(i.FormKey))
+                {
+                    LLs.Add(i.FormKey);
+                    if (cache.TryResolve<ILeveledItem>(i.FormKey, out var itm)) {
+                        LLs.Add(itm.FormKey);
+                        GetSubLeveledLists(itm, LLs);
+                    }
+                }
+            });
+        }
+
+        public static List<string> GetLeveledListArmorType(ILeveledItem ll)
+        {
+            var cache = Settings.Cache;
+            ConcurrentBag<FormKey> ArmorsFormKey = new();
+            try
+            {
+                return ll.ContainedFormLinks.Select(i => {
+                    var item = i.Resolve<IItemGetter>(cache);
+                    if (item is IArmorGetter)
+                        return ArmorUtils.GetArmorType((IArmorGetter)item);
+                    else
+                    {
+                        List<IArmorGetter> armors = new();
+                        GetArmorList(item, armors, ArmorsFormKey);
+                        if (!armors.Any()) return TArmorType.Unknown;
+                        var armor = armors.Where(a => ArmorUtils.IsBodyArmor(a));
+                        return armor.Any() ? ArmorUtils.GetArmorType(armor.First())
+                            : ArmorUtils.GetArmorType(armors.First());
+                    }
+                }).Distinct().ToList();
+            }
+            catch
+            {
+                return new List<string>() { TArmorType.Unknown };
+            }
+        }
+
+        public static List<string> GetLeveledListGenderType(ILeveledItem ll)
+        {
+            var cache = Settings.Cache;
+            ConcurrentBag<FormKey> ArmorsFormKey = new();
+            try
+            {
+                return ll.ContainedFormLinks.Select(i => {
+                    var item = i.Resolve<IItemGetter>(cache);
+                    if (item is IArmorGetter)
+                        return ArmorUtils.GetGender((IArmorGetter)item);
+                    else
+                    {
+                        List<IArmorGetter> armors = new();
+                        GetArmorList(item, armors, ArmorsFormKey);
+                        if (!armors.Any()) return TArmorGender.Unknown;
+                        var armor = armors.Where(a => ArmorUtils.IsBodyArmor(a));
+                        return ArmorUtils.GetGender(armor.First());                    }
+                }).Distinct().ToList();
+            }
+            catch
+            {
+                return new List<string>() { TArmorGender.Unknown };
+            }
+        }
+
     }
 }

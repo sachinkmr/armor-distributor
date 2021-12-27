@@ -69,7 +69,6 @@ namespace ArmorDistributor.Utils
                 return matches.First();
 
             var type = "Unknown";
-            if (!armor.ObjectEffect.IsNull) type= "Mage";
             //type=armor.Value > 3 ? "Fine Clothes" : "Poor Clothes";
             Logger.DebugFormat("Unknown: {0}, {1} | Assigned: {2} ", eid, name, type);
             return type;
@@ -105,29 +104,20 @@ namespace ArmorDistributor.Utils
 
         public static bool IsValidArmor(IArmorGetter armor)
         {
+            var name = armor.Name==null ? "" : armor.Name.String;
             return !armor.MajorFlags.HasFlag(Mutagen.Bethesda.Skyrim.Armor.MajorFlag.NonPlayable)
                     && armor.Armature != null && armor.Armature.Count > 0
                     && (Regex.Match(armor.EditorID, Settings.PatcherSettings.ValidArmorsRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(armor.EditorID, Settings.PatcherSettings.InvalidArmorsRegex, RegexOptions.IgnoreCase).Success);
-        }
-
-        public static bool IsValidOutfit(IOutfitGetter outfit)
-        {
-            return Regex.Match(outfit.EditorID, Settings.PatcherSettings.ValidOutfitRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(outfit.EditorID, Settings.PatcherSettings.InvalidOutfitRegex, RegexOptions.IgnoreCase).Success;
-        }
-
-        public static bool IsValidOutfit(string outfit)
-        {
-            return Regex.Match(outfit, Settings.PatcherSettings.ValidOutfitRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(outfit, Settings.PatcherSettings.InvalidOutfitRegex, RegexOptions.IgnoreCase).Success;
+                    || !Regex.Match(armor.EditorID, Settings.PatcherSettings.InvalidArmorsRegex, RegexOptions.IgnoreCase).Success)
+                    && (Regex.Match(name, Settings.PatcherSettings.ValidArmorsRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(name, Settings.PatcherSettings.InvalidArmorsRegex, RegexOptions.IgnoreCase).Success);
         }
 
         public static string GetArmorType(IArmorGetter armor)
         {
             if (IsCloth(armor))
                 return Regex.IsMatch(armor.EditorID, Settings.PatcherSettings.ArmorTypeRegex["Wizard"], RegexOptions.IgnoreCase)
-                    || !armor.ObjectEffect.IsNull ? TArmorType.Wizard : TArmorType.Cloth;
+                    ? TArmorType.Wizard : TArmorType.Cloth;
             return armor.BodyTemplate.ArmorType == ArmorType.HeavyArmor ? TArmorType.Heavy : TArmorType.Light;
 
             //if (armor.HasKeyword(Skyrim.Keyword.ArmorJewelry)

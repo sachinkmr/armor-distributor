@@ -40,35 +40,42 @@ namespace ArmorDistributor
 
         private static void RunPacher(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-            // Reading and Parsing setting file
+            //HelperUtils.mergePlugins(@"E:\Modded\SSE-Aldrnari142\mods\Armor Merged\merge - Armor Merged\merge.json", false);
+            //List<string> esps = new();
+            //esps.Add(@"E:\Modded\SSE-Aldrnari142\mods\Deze Armor and Clothing SPIDified\SPIDeze_DISTR.ini");
+            //esps.Add(@"E:\Modded\SSE-Aldrnari142\mods\SPID Bikinification\Arial Dress Up Bikini Bandits Vanilla - SPID_DISTR.ini");
+            //esps.Add(@"E:\Modded\SSE-Aldrnari142\mods\Distributed Divine Elegance with SPID featuring Fancy Erikur and Nazeem\Arial Distributed Divine Elegance - SPID_DISTR.ini");
+            //HelperUtils.updateSPIDFile(@"E:\Modded\SSE-Aldrnari142\mods\Armor Merged\merge - Armor Merged\map.json", esps, "Armor Merged.esp");
+            //return;
 
+            // Reading and Parsing setting file
             Console.WriteLine("Settings loaded");
             Init(state, UserSettings.Value);
 
             if (!RequirementsFullfilled(state)) return;
-            // Morphs.create();
-
+            
             //Distribute Jewellaries and Sleeping outfits, and outfits
             //JewelaryManager.ProcessAndDistributeJewelary(state);
             //new SleepingOutfitManager(state).ProcessSlepingOutfits();
             new OutfitManager(state).Process();
 
-            //// Little house keeping 
-            //if (Settings.UserSettings.CreateBashPatch) {
-            //    CreateBashPatchForLVLI(state);
-            //    CreateBashPatchForLVLN(state);
-            //}            
+            // Little house keeping 
+            if (Settings.UserSettings.CreateBashPatch)
+            {
+                CreateBashPatchForLVLI(state);
+                CreateBashPatchForLVLN(state);
+            }
 
-            ////Saving all the patches to disk
-            //Logger.InfoFormat("Saving all the patches to disk.....");
-            //Patches.Add(state.PatchMod);
-            //Patches.ForEach(p => FileUtils.SaveMod(state, p));
+            //Saving all the patches to disk
+            Logger.InfoFormat("Saving all the patches to disk...");
+            Patches.Add(state.PatchMod);
+            Patches.ForEach(p => FileUtils.SaveMod(state, p));
             Logger.InfoFormat("Enjoy");
         }
 
         private static void CreateBashPatchForLVLI(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-            Logger.InfoFormat("Creating Leveled List bash patch....");
+            Logger.InfoFormat("Creating Leveled List bash patch...");
             foreach (ILeveledItemGetter lvli in Settings.State.LoadOrder.PriorityOrder
                 .WinningOverrides<ILeveledItemGetter>())
             {
@@ -82,12 +89,38 @@ namespace ArmorDistributor
                     OutfitUtils.AddEntriesToLeveledList(state.PatchMod, lvl, entries.Distinct());
                 }
             }
-            Logger.InfoFormat("Leveled List Bash Patch Created...\n\n");
+        }
+
+        private static void FixCircularLeveledLists(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
+        {
+            Logger.InfoFormat("Creating Leveled List bash patch...");
+            var mCache = state.LoadOrder.ToMutableLinkCache();
+            Dictionary<FormKey, List<FormKey>> parentChildLL = new();
+            List<FormKey> processed = new();
+            foreach (ILeveledItemGetter lvli in state.LoadOrder.PriorityOrder
+            .WinningOverrides<ILeveledItemGetter>())
+            {
+                HashSet<FormKey> set = new();
+                if (!processed.Contains(lvli.FormKey)) {
+                    Logger.InfoFormat("Checking Circuler Leveled List: "+lvli.FormKey.ToString());
+                    OutfitUtils.FixLeveledList(lvli, set, parentChildLL, mCache);
+                }
+                processed.AddRange(set);
+            }
+
+            var patch = state.PatchMod;
+            //var patch = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "Bash Patch Part 1.esp");
+            foreach (var llset in parentChildLL) {
+                var ll = patch.LeveledItems.GetOrAddAsOverride(mCache.Resolve<ILeveledItem>(llset.Key));
+                ll.Entries = ll.Entries.Where(i => !llset.Value.Contains( i.Data.Reference.FormKey))
+                    .Select(i => i.DeepCopy())
+                    .ToExtendedList();
+            }
         }
 
         private static void CreateBashPatchForLVLN(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
-            Logger.InfoFormat("Creating Leveled List bash patch....");
+            Logger.InfoFormat("Creating Leveled NPC bash patch...");
             foreach (ILeveledNpcGetter lvli in State.LoadOrder.PriorityOrder.WinningOverrides<ILeveledNpcGetter>()){
                 List<ILeveledNpcGetter> lvlis = Cache.ResolveAll<ILeveledNpcGetter>(lvli.FormKey).ToList();
                 if (lvlis.Count > 1)
@@ -99,11 +132,11 @@ namespace ArmorDistributor
                     OutfitUtils.AddEntriesToLeveledList(state.PatchMod, lvl, entries.Distinct());
                 }
             }
-            Logger.InfoFormat("Leveled List Bash Patch Created...\n\n");
         }
 
         private static bool RequirementsFullfilled(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
+            
             Logger.InfoFormat("Validating requirements...");
             string spidLoc = Path.Combine(state.DataFolderPath, "skse", "plugins", "po3_SpellPerkItemDistributor.dll");
             if (!File.Exists(spidLoc))
@@ -124,6 +157,15 @@ namespace ArmorDistributor
                     patchExists = true;
                 }
             }
+
+            // Checking for JSOn File Categories
+            var categories = Settings.PatcherSettings.OutfitRegex.Keys;
+            Settings.UserSettings.ArmorModsForOutfits.ForEach(s => {
+                s.Value.ForEach(x => {
+                    if (x!="Generic" && !categories.Contains(x))
+                        Logger.WarnFormat("{0} contains invalid Category:{1}", s.Key, x);
+                });
+            });
 
             //// Copying the scripts
             //var src = Path.Combine(state.ExtraSettingsDataPath, "Scripts");

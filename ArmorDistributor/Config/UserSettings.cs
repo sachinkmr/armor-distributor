@@ -17,13 +17,19 @@ namespace ArmorDistributor.Config
         [JsonDiskName("DefaultOutfitPercentage")]
         [SettingName("Distribute Default Outfits By: ")]
         [SynthesisTooltip("Along with modeed outfits, distribute default outfits as well by mentioned percentage.")]
-        public Percentage DefaultOutfitPercentage { get; set; } = Percentage._10;
+        public Percentage DefaultOutfitPercentage { get; set; } = Percentage._20;
 
         [SynthesisOrder]
         [JsonDiskName("FilterUniqueNPC")]
         [SettingName("Filter Unique NPC: ")]
         [SynthesisTooltip("Outfits will not be assigned to unique NPCs when seleted")]
         public bool FilterUniqueNPC = false;
+
+        [SynthesisOrder]
+        [JsonDiskName("SkipSluttyOutfit")]
+        [SettingName("Skip Slutty Outfits: ")]
+        [SynthesisTooltip("When selected, Patcher will try to skip slutty armors")]
+        public bool SkipSluttyOutfit = true;
 
         [SynthesisOrder]
         [JsonDiskName("CreateBashPatch")]

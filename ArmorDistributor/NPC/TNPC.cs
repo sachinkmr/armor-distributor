@@ -61,18 +61,18 @@ namespace ArmorDistributor.NPC
                             : NameGroup.Count() > 0 ? NameGroup.Last() 
                             : ClassEID== "Citizen"? "CitizenRich":"Unknown";
             
-            if (Regex.IsMatch(Identifier, Settings.PatcherSettings.DividableFactions, RegexOptions.IgnoreCase)) {
-                Skill[]? skills = new Skill[] { Skill.HeavyArmor, Skill.LightArmor, Skill.Conjuration, Skill.Alteration, Skill.Destruction, Skill.Illusion, Skill.Restoration };
-                var  allSkills = npc.PlayerSkills.SkillValues.Where(x => skills.Contains(x.Key));
-                var maxSkill = allSkills.OrderBy(x => x.Value)
-                    .ToDictionary(x => x.Key, x => x.Value)
-                    .Last().Key;
+            //if (Regex.IsMatch(Identifier, Settings.PatcherSettings.DividableFactions, RegexOptions.IgnoreCase)) {
+            //    Skill[]? skills = new Skill[] { Skill.HeavyArmor, Skill.LightArmor, Skill.Conjuration, Skill.Alteration, Skill.Destruction, Skill.Illusion, Skill.Restoration };
+            //    var  allSkills = npc.PlayerSkills.SkillValues.Where(x => skills.Contains(x.Key));
+            //    var maxSkill = allSkills.OrderBy(x => x.Value)
+            //        .ToDictionary(x => x.Key, x => x.Value)
+            //        .Last().Key;
 
-                ArmorType = maxSkill == Skill.HeavyArmor ? TArmorType.Heavy
-                    : maxSkill == Skill.LightArmor ? TArmorType.Light
-                    : TArmorType.Wizard;
-                Identifier += ArmorType;
-            }
+            //    ArmorType = maxSkill == Skill.HeavyArmor ? TArmorType.Heavy
+            //        : maxSkill == Skill.LightArmor ? TArmorType.Light
+            //        : TArmorType.Wizard;
+            //    Identifier += ArmorType;
+            //}
         }
 
         public override string? ToString()

@@ -34,7 +34,7 @@ namespace ArmorDistributor.Config
         internal static void Init(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, UserSettings value)
         {
             string ConfigFile = Path.Combine(state.ExtraSettingsDataPath, "config", "PatcherSettings.json");
-            PatcherSettings = FileUtils.ReadJson<PatcherSettings>(ConfigFile);
+            PatcherSettings = FileUtils.ReadJson<PatcherSettings>(ConfigFile).init();
             Patches = new();
             State = state;
             Cache = state.LinkCache;

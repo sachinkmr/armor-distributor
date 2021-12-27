@@ -35,6 +35,23 @@ namespace ArmorDistributor.Utils
             MastersListOrdering = MastersListOrderingByLoadOrder.Factory(Settings.State.LoadOrder.ListedOrder.Select(x=>x.ModKey))
         };
 
+        public static ISkyrimMod GetIncrementedMod(ISkyrimMod mod)
+        {
+            if (mod.EnumerateMajorRecords().Where(x => x.FormKey.ModKey.Equals(mod.ModKey)).Count() < 2040)
+                return mod;
+
+            var name = "";
+            try
+            {
+                var indx = Int32.Parse(mod.ModKey.Name.Last().ToString());
+                name = mod.ModKey.Name.Replace(indx.ToString(), (indx + 1).ToString());
+            }
+            catch
+            {
+                name = mod.ModKey.Name + " 1";
+            }
+            return FileUtils.GetOrAddPatch(name);
+        }
 
         public static T ReadJson<T>(string filePath)
         {
@@ -66,6 +83,7 @@ namespace ArmorDistributor.Utils
         public static ISkyrimMod GetOrAddPatch(string espName)
         {
             espName = espName.EndsWith(".esp") ? espName : espName + ".esp";
+            espName = espName.StartsWith(Settings.PatcherSettings.PatcherPrefix) ? espName : Settings.PatcherSettings.PatcherPrefix + espName;
             ModKey modKey = ModKey.FromNameAndExtension(espName);
 
             if (State.LoadOrder.HasMod(modKey))

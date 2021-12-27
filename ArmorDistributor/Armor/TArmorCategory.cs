@@ -82,11 +82,9 @@ namespace ArmorDistributor.Armor
             
             foreach (var g in armors.Keys) {
                 foreach (var t in armors[g].Keys) {
-                    string eid = Settings.PatcherSettings.LeveledListPrefix + "mLL_" + Name + "_" + g+"_"+t;
+                    string eid = Name + "_" + g+"_"+t;
                     var set = armors[g][t].Select(a => a.CreateLeveledList(PatchedMod).AsLink<IItemGetter>());
-                    LeveledItem mLL = OutfitUtils.CreateLeveledList(PatchedMod, set, eid, 1, LeveledListFlag);
-                    Outfit newOutfit = PatchedMod.Outfits.AddNew(eid);
-                    newOutfit.Items = new(mLL.AsLink().AsEnumerable());
+                    Outfit newOutfit = OutfitUtils.CreateOutfit(PatchedMod, eid, set);
                     GenderOutfit.GetOrAdd(g).Add(t, newOutfit.FormKey);
                 }
             }

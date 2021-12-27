@@ -15,16 +15,18 @@ namespace ArmorDistributor.Config
         public string? ValidOutfitRegex;
         public string? ValidNpcRegex;
         public string? InvalidNpcRegex;
-        public string? DividableFactions;
+        //public string? DividableFactions;
 
         // Prefixes and sufixes
         public string? PatcherPrefix;
         public string? LeveledListPrefix;
+        public string? OutfitPrefix;
+        public string? OutfitSuffix;
         public string? SLPLeveledListPrefix;
         public string? OutfitPatchedKeywordEID;
 
         public bool AddArmorsToMannequin = false;
-        public string MannequinOutfitEID = "ZZZ_Mannequins_OTFT";
+        public string MannequinOutfitEID="";
         public FormKey OutfitPatchedKeyword = FormKey.Null;
 
         public List<string> ClothesType = new();
@@ -35,5 +37,10 @@ namespace ArmorDistributor.Config
         public Dictionary<string, string> ArmorTypeRegex = new();
         public Dictionary<string, string> CombatStyleRegex = new();
         public List<string> MaleSleepingWears = new();
+
+        public PatcherSettings init() {
+            MannequinOutfitEID = "ZZZ_Mannequins" + this.OutfitSuffix;
+            return this;
+        }
     }
 }

@@ -2,12 +2,14 @@
   "PatcherPrefix": "Armor Distributor-",
   "LeveledListPrefix": "_ZZZ_",
   "SLPLeveledListPrefix": "_ZZS_",
+  "OutfitPrefix":  "_ZZZ_",
+  "OutfitSuffix":  "_OTFT",
   "OutfitPatchedKeywordEID": "NpcOutfitPatched",
 
-  "InvalidOutfitRegex": "Dwemer|(MQ[0-9])|(MS[0-9])|CLWGilded|CLWShadow|Mutant|Headless|Horse|Draugr|Skin|Dragon|Quest|DEMO|Vacated|Hidden|Skeleton|slut",
-  "ValidOutfitRegex": "GuardSon|Redguard|Dawnguard|FSGuard|SkinTight",
-  "InvalidArmorsRegex": "(MQ[0-9])|(MS[0-9])|Dummy|Horse|Mutant|Headless|Corpse|Fake|Template|Skin|Nake|Dummy|replica|skeleton|camp|backpack|Havok|damage|slut|nude|Skeleton",
-  "ValidArmorsRegex": "GuardSon|Redguard|Dawnguard|FSGuard|SkinTight",
+  "InvalidOutfitRegex": "Dismember|FFCustom|nude|nake|empty|Dwemer|(MQ[0-9])|(MS[0-9])|CLWGilded|CLWShadow|Mutant|Headless|Horse|Draugr|Skin|Dragon|Quest|DEMO|Vacated|Hidden|Decapit|Skeleton|slut",
+  "ValidOutfitRegex": "SkinTight",
+  "InvalidArmorsRegex": "Dismember|(MQ[0-9])|(MS[0-9])|Dummy|Horse|Mutant|Headless|Corpse|Fake|Template|Skin|Nake|Dummy|replica|skeleton|camp|backpack|Havok|damage|slut|nude|Skeleton|grave",
+  "ValidArmorsRegex": "SkinTight",
   "InvalidFactionRegex": "Quest|Demo|Dummy|test|Dialogue|Ally|Friend|Crime|Allies|(MQ[0-9])|(MS[0-9])|Excluded|Skeleton",
   "ValidFactionRegex": "GuardSon|Redguard|Dawnguard|FSGuard|GuardOrc",
   "InvalidNpcRegex": "ghost|corpse|dead|Dummy|Decoy|Preset|Skeleton",
@@ -30,12 +32,12 @@
   "DividableFactions": "Dunmer|Altmer|Bosmer|Falmer|Nord|Breton|Orc|Argonian|Khajiit|Vampire|Redguard|Thief|Bandit|Dawnguard|Thalmor|Imperial|Stormcloak|Forsworn|Mercenary|Daedra",
 
   "ArmorTypeRegex": {
-    "Heavy": "defen|Beast|2H|Tank|ALL|Melee|Heavy|Berserker|Feral|DA13Heavy|GuardSon|Knight|Marauder|Berserker|lalawench_outfit_heavy|OBIS_Feral::staff|Destruction|Conjuration|Restoration|Alteration|Illusion|Mage|Missile|Light|Cloth|Magic|Rose|Robe|JVD|Nubia|Digger|Archer|Assassin|caller|Wizard|Sorcer|Necro|Monk|Shamen|priest|Bow",
-    "Light": "Bow|Armor.*Cloth|Cloth.*Armor|Armor|ALL|Light|Butcher|Missle|Missile|Archer|Assassin|DA13Light|Assassin|GuardSons|lalawench_outfit_light|Range|Spellsword::defen|staff|Destruction|Conjuration|Restoration|Alteration|Illusion|Berserker|Knight|caller|Mage|Cloth|Magic|Robe|JVD|Nubia|Heavy|Feral|Melee|Wizard|Sorcer|Necro|Monk|Beast|Shamen|priest",
+    "Heavy": "Barbarian|defen|Beast|2H|Tank|ALL|Melee|Heavy|Berserker|Feral|DA13Heavy|GuardSon|Knight|Marauder|Berserker|lalawench_outfit_heavy|OBIS_Feral::staff|Destruction|Conjuration|Restoration|Alteration|Illusion|Mage|Missile|Light|Cloth|Magic|Rose|Robe|JVD|Nubia|Digger|Archer|Assassin|caller|Wizard|Sorcer|Necro|Monk|Shamen|priest|Bow",
+    "Light": "Thief|Thieve|Assassin|Bow|Armor.*Cloth|Cloth.*Armor|Armor|ALL|Light|Butcher|Missle|Missile|Archer|Assassin|DA13Light|Assassin|GuardSons|lalawench_outfit_light|Range|Spellsword::defen|staff|Destruction|Conjuration|Restoration|Alteration|Illusion|Berserker|Knight|caller|Mage|Cloth|Magic|Robe|JVD|Nubia|Feral|Melee|Wizard|Sorcer|Necro|Monk|Beast|Shamen|priest",
     //"Warrior": "DA13Light|lalawench_outfit_light|Armor|ALL|Light|Butcher|Spellsword|Light|Beast|2H|Tank|ALL|Melee|Heavy|Berserker|Feral|DA13Heavy|GuardSon|Knight|Marauder|Berserker|lalawench_outfit_heavy|OBIS_Feral::Destruction|Conjuration|Restoration|Alteration|Illusion|Mage|Missle|Missile|Clothes|Magic|Rose|Robe|JVD|Nubia|Archer|caller|Wizard|Sorcer|Necro|Monk|Assassin",
     //"Missle": "Light|Missle|Missile|Archer|Range::Destruction|Conjuration|Restoration|Alteration|Illusion|Berserker|Knight|caller|Mage|Clothes|Magic|Robe|JVD|Nubia|Heavy|Feral|Melee|Wizard|Sorcer|Necro|Monk|Beast|Butcher|Assassin|Spellsword",
-    "Wizard": "cult|Mystic|College|staff|Shamen|Warlock|Destruc|Conjur|Restor|Alter|Illus|Monk|Necro|Sorcer|Wizard|Mage|Robe|Magic|JVD|Rose|caller|DA13Robe|priest::defen|Archer|Assassin|Berserker|Missile|Digger|Heavy|Melee|Light|Missle|Feral|Knight|Beast|Bow",
-    "Cloth": "Prisoner|Merchant|Miner|BarKeep|BlackSmith|Farm|Mourn|Chef|Beggar|Wedding|Tavern|Fine|Noble|Quilt|Dress|Coat|Fair|Suite|Fashion|jarl|Cloth::wench_Clothes|Assassin"
+    "Wizard": "saint|cult|Mystic|College|staff|Shamen|Warlock|Destruc|Conjur|Restor|Alter|Illus|Monk|Necro|Sorcer|Wizard|Mage|Robe|Magic|JVD|Rose|caller|DA13Robe|priest::defen|Archer|Assassin|Berserker|Missile|Digger|Heavy|Melee|Light|Missle|Feral|Knight|Beast|Bow|Miraak|cicero",
+    "Cloth": "Prisoner|Merchant|Miner|BarKeep|BlackSmith|Farm|Mourn|Chef|Beggar|Wedding|Tavern|Fine|Noble|Quilt|Dress|Coat|Fair|Suite|Fashion|jarl|Cloth::wench_Clothes|Assassin|Miraak|cicero"
   },
 
   "CombatStyleRegex": {
@@ -77,7 +79,7 @@
     "NordRace": "Nord",
     "BretonRace": "Breton",
     "OrcRace": "Orc|GuardOrc|OrcStronghold::OrcFriend|lorCl|morC|ArmorC|Sorcer",
-    "VampireRace": "Vamp",
+    "VampireRace": "Vamp|crimson",
     "ArgonianRace": "Argonian",
     "KhajiitRace": "Khajiit",
 
