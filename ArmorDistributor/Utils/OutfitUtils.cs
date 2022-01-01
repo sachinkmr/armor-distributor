@@ -226,7 +226,8 @@ namespace ArmorDistributor.Utils
             otft.Items.Add(item);
             return otft;
         }
-        internal static Outfit CreateOutfit(ISkyrimMod patchedMod, string eid, List<IItemGetter> items)
+
+        public static Outfit CreateOutfit(ISkyrimMod patchedMod, string eid, List<IItemGetter> items)
         {
             LeveledItem mLL = CreateLeveledList(patchedMod, items, "mLL_" + eid, 1, Settings.LeveledListFlag);
 
@@ -318,7 +319,22 @@ namespace ArmorDistributor.Utils
                 return new List<string>() { TArmorType.Unknown };
             }
         }
-        
+
+        public static List<IArmorGetter> GetArmorList(IOutfitGetter outfit) {
+            List<IArmorGetter> armors = new();
+            ConcurrentBag<FormKey> ArmorsFormKey = new();
+            outfit.ContainedFormLinks.Where(x=>!x.IsNull)
+                .Select(l => {
+                    Settings.Cache.TryResolve<IItemGetter>(l.FormKey, out var t);
+                    return t;
+                }).Where(x=>x!=null)
+                .ForEach(i => { 
+                    if (i is IArmorGetter) armors.Add((IArmorGetter)i);
+                    if(i is ILeveledItem) GetArmorList(i, armors, ArmorsFormKey);
+                });
+            return armors.Distinct().ToList();
+        }
+       
         public static List<string> GetOutfitArmorType(string eid)
         {
             return GetOutfitArmorType(Settings.Cache.Resolve<IOutfitGetter>(eid));            

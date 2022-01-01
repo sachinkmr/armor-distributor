@@ -83,7 +83,7 @@
     "Lady Jasmine.esp",
     "Lingerie Set.esp"
   ],
-  "ArmorModsForOutfits": {
+  "ArmorMods": {
     //"Armor Merged.esp": [ "Generic" ],
     "Sovn's Armor and Weapons Merge.esp": [ "Generic" ],
     "Apachii_DivineEleganceStore.esm": [ "Generic" ],
@@ -134,6 +134,8 @@
     "9204 Overhit Syana by Team TAL.esp": [ "Thief", "Assassin", "DarkBrotherhood" ],
     "9204 Tera Kyna Set by Team TAL.esp": [ "Blade", "Knight" ],
     "[Caenarvon] True Flame Sakitama.esp": [ "Assassin", "Nightingale" ],
+    "AOM.esm": [ "Mage" ],
+    "AOM.esp": [ "Mage" ],
     "[Christine] College Warrior.esp": [ "Assassin", "Warrior" ],
     "[Christine] Dragon Slaughter.esp": [ "Knight", "Warrior" ],
     "[Christine] Dragon Veil.esp": [ "Hunter", "Thief", "Archer" ],
@@ -152,6 +154,10 @@
     "[COCO] Pinup Cheongsam [SE].esp": [ "Mage" ],
     "[COCO]Goddess War.esp": [ "Knight", "Companion" ],
     "[COCO]Raikou.esp": [ "Necromancer", "Mage" ],
+    "[COCO] Chun-Li Qipao [SE].esp": [ "Mage" ],
+    "[COCO] Shadow Assassin [SE].esp": [ "Assassin" ],
+    "[COCO] Succubus [SE].esp": [ "Necromancer", "Mage" ],
+    "[COCO]ChristmasGift [SE].esp": [ "Mage" ],
     "[Dint999] BDO_DK_Floree.esp": [ "Assassin", "Archer", "VampireRace" ],
     "[Dint999] BDO_Sor_DotNight.esp": [ "Mage", "Healer", "VampireRace" ],
     "[Dint999] HZD Aloy1.esp": [ "Hunter" ],
@@ -538,6 +544,8 @@
     "ksa_btvc_dirga.esp": [ "Warrior" ],
     "kho_wol_arc.esp": [ "Archer" ],
     "StormcloakWarmaidenArmor.esp": [ "Warrior" ],
-    "Imperial Quaestor Armor.esp": [ "Warrior" ]
+    "Imperial Quaestor Armor.esp": [ "Warrior" ],
+    "[Rektas] Night Masquerade [SE].esp": [ "Warrior", "Archer", "VampireRace" ]
+
   }
 }

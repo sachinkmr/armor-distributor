@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Mutagen.Bethesda.Skyrim;
+using Mutagen.Bethesda.Environments;
+using Mutagen.Bethesda;
+using Mutagen.Bethesda.Plugins.Cache;
 
 namespace ArmorDistributor.Config
 {
@@ -17,7 +20,7 @@ namespace ArmorDistributor.Config
         [JsonDiskName("DefaultOutfitPercentage")]
         [SettingName("Distribute Default Outfits By: ")]
         [SynthesisTooltip("Along with modeed outfits, distribute default outfits as well by mentioned percentage.")]
-        public Percentage DefaultOutfitPercentage { get; set; } = Percentage._20;
+        public int DefaultOutfitPercentage { get; set; }
 
         [SynthesisOrder]
         [JsonDiskName("FilterUniqueNPC")]
@@ -40,7 +43,7 @@ namespace ArmorDistributor.Config
         [SynthesisOrder]
         [SettingName("Armor Mods: ")]
         [SynthesisTooltip("Select the armor mods and the outfit catergory.\nIf category is not selected the mod will use Generic Category.\nFor Generic category, outfit will be created based on the armor material type.")]
-        public List<ModCategory> ArmorMods = new();
+        public List<ModCategory> PatchableArmorMods = new();
 
         [SynthesisOrder]
         [JsonDiskName("NPCToSkip")]
@@ -54,49 +57,40 @@ namespace ArmorDistributor.Config
         [SynthesisTooltip("Select the mods which you dont want to use in patcher")]
         public HashSet<ModKey> ModsToSkip = new();
 
-        [Ignore]
-        [JsonDiskName("ArmorModsForOutfits")]
-        public Dictionary<string, List<string>>? ArmorModsForOutfits;
+        [SynthesisOrder]
+        [JsonDiskName("OutfitMods")]
+        [SettingName("NPC mods for patching outfits: ")]
+        [SynthesisTooltip("By default it will add all the mods with NPC records to patch their outfits. \nYou can add/remove the mod to include/exclude the NPC accordingly.")]
+        public List<ModKey> OutfitMods { get; set; }
 
         [Ignore]
-        [SynthesisOrder]
-        [JsonDiskName("JewelryForMales")]
-        [SynthesisTooltip("Males NPC will aslo has Jewelry")]
-        public bool JewelryForMales = false;
+        [JsonDiskName("ArmorMods")]
+        public Dictionary<string, List<string>>? ArmorMods;
 
-        [Ignore]
-        [SynthesisOrder]
-        [JsonDiskName("AddArmorsToMannequin")]
-        [SynthesisTooltip("Mannequin will have outfits from armor mods")]
-        public bool AddArmorsToMannequin = false;
-
-        [Ignore]
-        [SynthesisOrder]
-        [JsonDiskName("JewelryMods")]
-        [SynthesisTooltip("Mannequin will have outfits from armor mods")]
-        public HashSet<ModKey> JewelryMods = new();
-
-        [Ignore]
-        [SynthesisOrder]
-        [JsonDiskName("SleepingOutfitMods")]
-        [SynthesisTooltip("Mannequin will have outfits from armor mods")]
-        public HashSet<ModKey> SleepingOutfitMods = new();
 
         public UserSettings()
+        { 
+            if(OutfitMods==null||!OutfitMods.Any())
+                OutfitMods = Program.PatcherEnv.LoadOrder.ListedOrder
+                    .Where(x=> ModsToSkip.Contains(x.ModKey) && x.Mod.Npcs.Any())
+                    .Select(x=>x.ModKey)
+                    .ToList();
+        }
+
+        static UserSettings()
         {
-            ArmorModsForOutfits = ArmorMods.ToDictionary(x => x.ArmorMod.FileName.ToString(), 
-                x => x.Categories.Select(c => c.ToString()).ToList());
-            ArmorModsForOutfits.Values.ForEach(x => {
-                if (!x.Any()) x.Add(Categories.Generic.ToString());
-            });
+            //ArmorModsForOutfits = ArmorMods.ToDictionary(x => x.ArmorMod.FileName.ToString(), 
+            //    x => x.Categories.Select(c => c.ToString()).ToList());
+            //ArmorModsForOutfits.Values.ForEach(x => {
+            //    if (!x.Any()) x.Add(Categories.Generic.ToString());
+            //});
         }
     }
+
     public enum Percentage
     {
         _0 = 0, _10 = 10, _20 = 20, _30 = 30, _40 = 40, _50 = 50, _60 = 60, _70 = 70, _80 = 80, _90 = 90, _100 = 100
     }
-
-    
 
     public enum Categories {
         Generic,

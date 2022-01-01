@@ -144,15 +144,15 @@ namespace ArmorDistributor.Utils
 
         public static string GetGender(IArmorGetter armor)
         {
-            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Settings.Cache);
-
-            if (addon.WorldModel == null) return TArmorGender.Unknown;
-            if (addon.WorldModel.Male != null && addon.WorldModel.Female != null)
-                return TArmorGender.Common;
-            if (addon.WorldModel.Male == null)
-                return TArmorGender.Female;
-            if (addon.WorldModel.Female == null)
-                return TArmorGender.Male;
+            if (armor.Armature != null && armor.Armature.Count > 0 && Settings.Cache.TryResolve<IArmorAddonGetter>(armor.Armature.FirstOrDefault().FormKey, out var addon)) {
+                if (addon.WorldModel == null) return TArmorGender.Unknown;
+                if (addon.WorldModel.Male != null && addon.WorldModel.Female != null)
+                    return TArmorGender.Common;
+                if (addon.WorldModel.Male == null)
+                    return TArmorGender.Female;
+                if (addon.WorldModel.Female == null)
+                    return TArmorGender.Male;
+            }
             return TArmorGender.Unknown;
         }
 

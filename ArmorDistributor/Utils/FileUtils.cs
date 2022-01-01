@@ -35,9 +35,9 @@ namespace ArmorDistributor.Utils
             MastersListOrdering = MastersListOrderingByLoadOrder.Factory(Settings.State.LoadOrder.ListedOrder.Select(x=>x.ModKey))
         };
 
-        public static ISkyrimMod GetIncrementedMod(ISkyrimMod mod)
+        public static ISkyrimMod GetIncrementedMod(ISkyrimMod mod, bool forceCreate=false)
         {
-            if (mod.EnumerateMajorRecords().Where(x => x.FormKey.ModKey.Equals(mod.ModKey)).Count() < 2040)
+            if (!forceCreate && mod.EnumerateMajorRecords().Where(x => x.FormKey.ModKey.Equals(mod.ModKey)).Count() < 2040)
                 return mod;
 
             var name = "";
