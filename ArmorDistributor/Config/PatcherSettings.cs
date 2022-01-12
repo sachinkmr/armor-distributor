@@ -36,7 +36,6 @@ namespace ArmorDistributor.Config
         public Dictionary<string, string> OutfitRegex = new();
         public Dictionary<string, string> ArmorTypeRegex = new();
         public Dictionary<string, string> CombatStyleRegex = new();
-        public List<string> MaleSleepingWears = new();
 
         public PatcherSettings init() {
             MannequinOutfitEID = "ZZZ_Mannequins" + this.OutfitSuffix;

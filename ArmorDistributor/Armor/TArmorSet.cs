@@ -34,9 +34,7 @@ namespace ArmorDistributor.Armor
 
         private FormKey LLFormKey = FormKey.Null;
 
-        private readonly ISkyrimMod? Patch;
-
-        public TArmorSet(TArmor body, bool hasPatch = false)
+        public TArmorSet(TArmor body)
         {
             Body = body;
             Armors = new();
@@ -46,26 +44,13 @@ namespace ArmorDistributor.Armor
             Gender = body.Gender;
             Prefix = Settings.PatcherSettings.LeveledListPrefix + Body.Gender + "_" + Body.EditorID;
             Armors.Add(body);
-            if (!hasPatch)
-                Patch = FileUtils.GetOrAddPatch(Body.FormKey.ModKey.FileName+" - LVLI.esp");
         }
 
-        public TArmorSet(IArmorGetter body, bool hasPatch = false)
+        public TArmorSet(IArmorGetter body)
             : this(new TArmor(body))
         {
         }
-        public TArmorSet(TArmor body, ISkyrimMod patch)
-            : this(body, true)
-        {
-            Patch = patch;
-        }
-
-        public TArmorSet(IArmorGetter body, ISkyrimMod patch)
-            : this(new TArmor(body), true)
-        {
-            Patch = patch;
-        }
-
+       
         public void AddArmor(TArmor armor)
         {
             Armors.Add(armor);
@@ -84,12 +69,6 @@ namespace ArmorDistributor.Armor
         public void AddWeapon(IWeaponGetter weapon)
         {
             Weapons.Add(weapon.FormKey);
-        }
-
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public FormKey CreateLeveledList(bool forceCreate = false)
-        {
-            return CreateLeveledList(Patch, forceCreate);
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]

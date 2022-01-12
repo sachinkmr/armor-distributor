@@ -12,8 +12,6 @@ namespace ArmorDistributor.Armor
 {
     public class TArmor
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(TArmor));
-
         public IEnumerable<TBodySlot> BodySlots { get; }
         public FormKey FormKey { get; }
         public string Material { get; }
@@ -30,21 +28,13 @@ namespace ArmorDistributor.Armor
             BodySlots = ArmorUtils.GetBodySlots(armor);
             Type = ArmorUtils.GetArmorType(armor);
             Gender = ArmorUtils.GetGender(armor);
-            Name = armor.Name == null || armor.Name.String.IsNullOrEmpty() ? HelperUtils.SplitString( armor.EditorID ): armor.Name.ToString();
-            //if (IsBody()) {
-            //    var addon = Settings.Cache.Resolve<IArmorAddon>(armor.Armature.FirstOrDefault().FormKey);
-            //    if (addon.WorldModel == null && addon.WorldModel.Male == null || addon.WorldModel.Female == null) {
-            //        Logger.WarnFormat("Matching addon not found: {0}::{1}", armor.EditorID, armor.FormKey);
-            //    }
-            //}            
+            Name = armor.Name == null || armor.Name.String.IsNullOrEmpty() 
+                ? HelperUtils.SplitString( armor.EditorID ): armor.Name.ToString();        
         }
 
         public TArmor(IArmorGetter armor): 
             this(armor, ArmorUtils.GetMaterial(armor))
         {            
         }
-
-        public bool IsBody() { return BodySlots.Any(x=> ArmorUtils.IsUpperArmor(x)); }
-
     }
 }

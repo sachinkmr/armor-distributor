@@ -14,9 +14,32 @@ namespace ArmorDistributor.Utils
 {
     public class NPCUtils
     {
+
+        public static bool IsValidFaction(IFactionGetter faction)
+        {
+            return IsValidFaction(faction.EditorID);
+        }
+
+        public static bool IsValidFaction(string faction)
+        {
+            return Regex.Match(faction, Settings.PatcherSettings.ValidFactionRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(faction, Settings.PatcherSettings.InvalidFactionRegex, RegexOptions.IgnoreCase).Success;
+        }
+
+        public static bool IsValidNPCName(INpcGetter npc)
+        {
+            return IsValidNPCName(npc.EditorID);
+        }
+
+        public static bool IsValidNPCName(string npc)
+        {
+            return Regex.Match(npc, Settings.PatcherSettings.ValidNpcRegex, RegexOptions.IgnoreCase).Success
+                    || !Regex.Match(npc, Settings.PatcherSettings.InvalidNpcRegex, RegexOptions.IgnoreCase).Success;
+        }
+
         public static bool IsChild(INpcGetter npc) {
-            return IsChild(Settings.Cache.Resolve<IRaceGetter>(npc.Race.FormKey))
-                || IsChild(Settings.Cache.Resolve<IClassGetter>(npc.Class.FormKey).EditorID);
+            return IsChild(Program.Settings.Cache.Resolve<IRaceGetter>(npc.Race.FormKey))
+                || IsChild(Program.Settings.Cache.Resolve<IClassGetter>(npc.Class.FormKey).EditorID);
         }
 
         public static bool IsChild(IRaceGetter race)
@@ -30,7 +53,7 @@ namespace ArmorDistributor.Utils
         }
 
         public static bool IsValidNPC(INpcGetter npc) {
-            return !Settings.NPCs2Skip.Contains(npc.FormKey) 
+            return !Program.Settings.UserSettings.NPCToSkip.Contains(npc.FormKey)
                 && !IsChild(npc) && IsValidActorType(npc)
                 && (Regex.IsMatch(npc.EditorID, Settings.PatcherSettings.ValidNpcRegex, RegexOptions.IgnoreCase)
                     || !Regex.IsMatch(npc.EditorID, Settings.PatcherSettings.InvalidNpcRegex, RegexOptions.IgnoreCase));
@@ -38,17 +61,17 @@ namespace ArmorDistributor.Utils
 
         public static bool IsValidActorType(INpcGetter npc)
         {
-            return IsValidActorType(npc, Settings.Cache);
+            return IsValidActorType(npc, Program.Settings.Cache);
         }
 
         public static bool IsValidActorType(INpcGetter npc, ILinkCache cache)
         {
             var r = cache.Resolve<IRaceGetter>(npc.Race.FormKey);
-            return (r.HasKeyword(Skyrim.Keyword.ActorTypeNPC)
-                || r.HasKeyword(Skyrim.Keyword.ActorTypeDaedra)
-                || r.HasKeyword(Skyrim.Keyword.ActorTypeGhost)
-                || r.HasKeyword(Skyrim.Keyword.ActorTypePrisoner))
-                && !(r.HasKeyword(Skyrim.Keyword.ActorTypeAnimal)
+            return IsValidRace(r);
+        }
+
+        public static bool IsValidRace(IRaceGetter r) {
+            return !(r.HasKeyword(Skyrim.Keyword.ActorTypeAnimal)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeCow)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeCreature)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeDragon)
@@ -56,12 +79,11 @@ namespace ArmorDistributor.Utils
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeFamiliar)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeGiant)
                 || r.HasKeyword(Skyrim.Keyword.ActorTypeHorse)
-                || r.HasKeyword(Skyrim.Keyword.ActorTypeTroll)
-                || r.HasKeyword(Skyrim.Keyword.ActorTypeUndead));
+                || r.HasKeyword(Skyrim.Keyword.ActorTypeTroll));
         }
 
         public static bool IsGuard(INpcGetter npc) {
-            return npc.Factions.Any(x => x.Faction.FormKey.Equals(Skyrim.Faction.GuardDialogueFaction));
+            return npc.Factions.Any(x => x.Faction.FormKey.Equals(Skyrim.Faction.GuardDialogueFaction.FormKey));
         }
             
 
@@ -92,7 +114,10 @@ namespace ArmorDistributor.Utils
 
         public static bool IsFollower(INpcGetter npc)
         {
-            return npc.Factions.Any(r => r.Faction.Resolve(Settings.State.LinkCache).EditorID.Contains("FollowerFaction"));
+            return npc.Factions.Any(r => r.Faction.FormKey.Equals(Skyrim.Faction.CurrentFollowerFaction.FormKey)
+                                    || r.Faction.FormKey.Equals(Skyrim.Faction.DismissedFollowerFaction.FormKey)
+                                    || r.Faction.FormKey.Equals(Skyrim.Faction.PotentialFollowerFaction.FormKey)
+                                    || r.Faction.FormKey.Equals(Skyrim.Faction.PlayerFollowerFaction.FormKey));
         }
     }
 }

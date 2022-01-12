@@ -77,7 +77,7 @@ namespace ArmorDistributor.Utils
         private static string GetItemMaterial(IArmorGetter armor)
         {
             Regex mRegex = new(@"(?:Armor|Weap(?:on)?)?Materi[ae]l(\w+)", RegexOptions.IgnoreCase);
-            ILinkCache cache = Settings.Cache;
+            ILinkCache cache = Program.Settings.Cache;
             if (armor.Keywords != null)
                 foreach (FormLink<IKeywordGetter> keyword in armor.Keywords)
                     if (ArmorMaterials.Contains(keyword))
@@ -144,7 +144,7 @@ namespace ArmorDistributor.Utils
 
         public static string GetGender(IArmorGetter armor)
         {
-            if (armor.Armature != null && armor.Armature.Count > 0 && Settings.Cache.TryResolve<IArmorAddonGetter>(armor.Armature.FirstOrDefault().FormKey, out var addon)) {
+            if (armor.Armature != null && armor.Armature.Count > 0 && Program.Settings.Cache.TryResolve<IArmorAddonGetter>(armor.Armature.FirstOrDefault().FormKey, out var addon)) {
                 if (addon.WorldModel == null) return TArmorGender.Unknown;
                 if (addon.WorldModel.Male != null && addon.WorldModel.Female != null)
                     return TArmorGender.Common;
@@ -158,7 +158,7 @@ namespace ArmorDistributor.Utils
 
         public static IEnumerable<TBodySlot> GetBodySlots(IArmorGetter armor)
         {
-            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Settings.Cache);
+            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Program.Settings.Cache);
             return GetBodySlots(addon);
         }
 
@@ -171,7 +171,7 @@ namespace ArmorDistributor.Utils
 
         public static bool IsUpperArmor(IArmorGetter x)
         {
-            var addon = x.Armature.FirstOrDefault().Resolve(Settings.Cache);
+            var addon = x.Armature.FirstOrDefault().Resolve(Program.Settings.Cache);
             return addon.BodyTemplate.FirstPersonFlags.HasFlag(BipedObjectFlag.Body)
             || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.Chest)
             || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.ChestUnder);
@@ -186,13 +186,13 @@ namespace ArmorDistributor.Utils
 
         public static bool IsBodyArmor(IArmorGetter x)
         {
-            var addons = x.Armature.EmptyIfNull().Select(x => x.Resolve(Settings.Cache));
+            var addons = x.Armature.EmptyIfNull().Select(x => x.Resolve(Program.Settings.Cache));
             return addons.EmptyIfNull().Any(addon => addon.BodyTemplate.FirstPersonFlags.HasFlag(BipedObjectFlag.Body));
         }
 
         public static bool IsLowerArmor(IArmorGetter x)
         {
-            var addon = x.Armature.FirstOrDefault().Resolve(Settings.Cache);
+            var addon = x.Armature.FirstOrDefault().Resolve(Program.Settings.Cache);
             return addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.Pelvis)
             || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.PelvisUnder);
         }
@@ -237,7 +237,7 @@ namespace ArmorDistributor.Utils
 
         public static void AddArmorsToMannequin(IEnumerable<TArmorSet> armorSets)
         {
-            Logger.InfoFormat("Distributing Armor sets to Mannequins...");
+            Console.WriteLine("Distributing Armor sets to Mannequins...");
 
             ISkyrimMod patch = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "Mannequins.esp");
             var form = patch.FormLists != null && patch.FormLists.Any()
@@ -246,7 +246,7 @@ namespace ArmorDistributor.Utils
             armorSets = armorSets.Distinct();
             var lls = armorSets.Select(set => set.CreateLeveledList(patch).AsLink<IItemGetter>());
             form.Items.AddRange(lls);
-            Logger.InfoFormat("Distributed Armor sets to Mannequins...\n\n");
+            Console.WriteLine("Distributed Armor sets to Mannequins...\n\n");
         }
 
     }

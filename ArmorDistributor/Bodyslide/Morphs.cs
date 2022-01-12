@@ -21,7 +21,7 @@ namespace ArmorDistributor.Bodyslide
     public class Morphs
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(Morphs));
-        public static void create()
+        public static void create(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             List<string> essential = new();
             List<string> unique = new();
@@ -32,14 +32,15 @@ namespace ArmorDistributor.Bodyslide
             string uniqueFollowers = Path.Combine(Path.GetTempPath(), "Unique+Followers.txt");
             int npcs = 0;
 
-            foreach (var npc in State.LoadOrder.PriorityOrder
+            foreach (var npc in state.LoadOrder.PriorityOrder
                 .WinningOverrides<INpcGetter>()
+                .Where(x => !Program.Settings.UserSettings.ModsToSkip.Contains(x.FormKey.ModKey))
                 .Where(x => !x.Configuration.Flags.HasFlag(NpcConfiguration.Flag.IsCharGenFacePreset)
                  && x.Name != null
                 && NPCUtils.IsFemale(x)))
             {
                 
-                var npcRace = npc.Race.Resolve(Settings.State.LinkCache);
+                var npcRace = npc.Race.Resolve(Program.Settings.State.LinkCache);
                 string race = npcRace.EditorID + " \"" + (npcRace.Name == null ? "" : npcRace.Name.String)
                     + "\" [RACE:" + npcRace.FormKey.IDString() + "]";
 
@@ -59,11 +60,11 @@ namespace ArmorDistributor.Bodyslide
             File.WriteAllLines(followerFile, follower);
             File.WriteAllLines(uniqueFollowers, follower.Union(unique).Distinct());
 
-            Logger.InfoFormat("Created File: " + essentialFile);
-            Logger.InfoFormat("Created File: " + uniqueFile);
-            Logger.InfoFormat("Created File: " + follower);
-            Logger.InfoFormat("Created File: " + uniqueFollowers);
-            Logger.InfoFormat("Total NPCs for morphing: " + npcs);
+            Console.WriteLine("Created File: " + essentialFile);
+            Console.WriteLine("Created File: " + uniqueFile);
+            Console.WriteLine("Created File: " + follower);
+            Console.WriteLine("Created File: " + uniqueFollowers);
+            Console.WriteLine("Total NPCs for morphing: " + npcs);
             
         }
     }

@@ -19,15 +19,22 @@ namespace ArmorDistributor.Armor
 
         public Dictionary<string, Dictionary<string, FormKey>> GenderOutfit;
 
-        public ConcurrentBag<TArmorSet> Armors { get; }
+        public List<TArmorSet> Armors { get; }
 
-        public ConcurrentDictionary<FormKey, string> Outfits { get; }
+        public Dictionary<FormKey, string> Outfits { get; }
+        
+        public Dictionary<string, FormKey> NPCs { get; }
+        
+        public Dictionary<string, HashSet<FormKey>> Identifiers;
 
-        public TArmorCategory(string name) {
+        public TArmorCategory(string name)
+        {
             Name = name;
+            NPCs = new();
             Armors = new();
             Outfits = new();
-            GenderOutfit=new();
+            GenderOutfit = new();
+            Identifiers = new();
         }
 
         public void AddArmorSet(TArmorSet set)
@@ -53,36 +60,25 @@ namespace ArmorDistributor.Armor
         }
 
         public void AddOutfits(MutableLoadOrderLinkCache<ISkyrimMod, ISkyrimModGetter> cache, IEnumerable<KeyValuePair<FormKey, string>> outfits)
-        {            
-            outfits.ForEach(o => {
+        {
+            outfits.ForEach(o =>
+            {
                 var ot = cache.Resolve<IOutfitGetter>(o.Key);
                 AddOutfit(ot);
             });
         }
 
-        //public void CreateOutfits(ISkyrimMod? PatchedMod)
-        //{
-        //    var GenderedArmors = Armors.GroupBy(x => x.Gender).ToDictionary(x=> x.Key, x=>x.Select(a=>a));
-        //    GenderedArmors.ForEach(x =>
-        //    {
-        //        var ll= x.Value.Select(a => a.CreateLeveledList(PatchedMod).AsLink<IItemGetter>());
-        //        string eid = Settings.PatcherSettings.LeveledListPrefix + "mLL_" + Name + "_" + x.Key;
-        //        LeveledItem mLL = OutfitUtils.CreateLeveledList(PatchedMod, ll, eid, 1, LeveledListFlag);
-        //        Outfit newOutfit = PatchedMod.Outfits.AddNew(eid);
-        //        newOutfit.Items = new(mLL.AsLink().AsEnumerable());
-        //        GenderOutfit[x.Key] = newOutfit.FormKey;
-        //    });
-        //}
-
         public void CreateOutfits(ISkyrimMod? PatchedMod)
         {
             var GenderedArmors = Armors.GroupBy(x => x.Gender).ToDictionary(x => x.Key, x => x.Select(a => a));
-            var armors = GenderedArmors .ToDictionary(x => x.Key, x=>x.Value
-                .GroupBy(x => x.Type).ToDictionary(x => x.Key, x => x.Select(a => a)));
-            
-            foreach (var g in armors.Keys) {
-                foreach (var t in armors[g].Keys) {
-                    string eid = Name + "_" + g+"_"+t;
+            var armors = GenderedArmors.ToDictionary(x => x.Key, x => x.Value
+               .GroupBy(x => x.Type).ToDictionary(x => x.Key, x => x.Select(a => a)));
+
+            foreach (var g in armors.Keys)
+            {
+                foreach (var t in armors[g].Keys)
+                {
+                    string eid = Name + "_" + g + "_" + t;
                     var set = armors[g][t].Select(a => a.CreateLeveledList(PatchedMod).AsLink<IItemGetter>());
                     Outfit newOutfit = OutfitUtils.CreateOutfit(PatchedMod, eid, set);
                     GenderOutfit.GetOrAdd(g).Add(t, newOutfit.FormKey);

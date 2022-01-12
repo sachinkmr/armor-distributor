@@ -2,26 +2,24 @@
 using log4net;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
-using Mutagen.Bethesda.Plugins.Binary;
 using Mutagen.Bethesda.Plugins.Binary.Parameters;
 using Mutagen.Bethesda.Plugins.Order;
 using Mutagen.Bethesda.Skyrim;
 using Mutagen.Bethesda.Synthesis;
 using Newtonsoft.Json;
+using Noggog;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using static ArmorDistributor.Config.Settings;
-
 
 namespace ArmorDistributor.Utils
 {
     public static class FileUtils
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(FileUtils));
+        
         public static BinaryWriteParameters SafeBinaryWriteParameters => new()
         {
             MasterFlag = MasterFlagOption.ChangeToMatchModKey,
@@ -32,12 +30,12 @@ namespace ArmorDistributor.Utils
             FormIDUniqueness = FormIDUniquenessOption.Iterate,
             NextFormID = NextFormIDOption.Iterate,
             CleanNulls = true,
-            MastersListOrdering = MastersListOrderingByLoadOrder.Factory(Settings.State.LoadOrder.ListedOrder.Select(x=>x.ModKey))
+            MastersListOrdering = MastersListOrderingByLoadOrder.Factory(Program.Settings.State.LoadOrder.ListedOrder.Select(x=>x.ModKey))
         };
 
         public static ISkyrimMod GetIncrementedMod(ISkyrimMod mod, bool forceCreate=false)
         {
-            if (!forceCreate && mod.EnumerateMajorRecords().Where(x => x.FormKey.ModKey.Equals(mod.ModKey)).Count() < 2040)
+            if (!forceCreate && GetMasters(mod).Count() < 250 && CanESLify(mod))
                 return mod;
 
             var name = "";
@@ -50,7 +48,19 @@ namespace ArmorDistributor.Utils
             {
                 name = mod.ModKey.Name + " 1";
             }
-            return FileUtils.GetOrAddPatch(name);
+            return GetOrAddPatch(name);
+        }
+
+        public static List<string> GetMasters(ISkyrimMod mod) {
+            return mod.EnumerateMajorRecords()
+                .Where(x => !x.FormKey.ModKey.Equals(mod.ModKey))
+                .Select(x=> x.FormKey.ModKey.FileName.String)
+                .Distinct()
+                .ToList();
+        }
+
+        public static bool CanESLify(ISkyrimMod mod) {
+            return mod.EnumerateMajorRecords().Where(x => x.FormKey.ModKey.Equals(mod.ModKey)).Count() < 2040;
         }
 
         public static T ReadJson<T>(string filePath)
@@ -76,7 +86,7 @@ namespace ArmorDistributor.Utils
                 patch.ModHeader.Flags = SkyrimModHeader.HeaderFlag.LightMaster;
             string location = Path.Combine(state.DataFolderPath, patchFile);
             patch.WriteToBinary(location, FileUtils.SafeBinaryWriteParameters);
-            Logger.InfoFormat("Saved Patch: {0} ", patchFile);
+            Console.WriteLine("Saved Patch: {0} ", patchFile);
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
@@ -86,17 +96,17 @@ namespace ArmorDistributor.Utils
             espName = espName.StartsWith(Settings.PatcherSettings.PatcherPrefix) ? espName : Settings.PatcherSettings.PatcherPrefix + espName;
             ModKey modKey = ModKey.FromNameAndExtension(espName);
 
-            if (State.LoadOrder.HasMod(modKey))
-                return Patches.Find(x=>x.ModKey.Equals(modKey));
+            if (Program.Settings.State.LoadOrder.HasMod(modKey))
+                return Program.Settings.Patches.Find(x=>x.ModKey.Equals(modKey));
 
             ISkyrimMod patch = new SkyrimMod(modKey, SkyrimRelease.SkyrimSE);
-            Patches.Add(patch);
+            Program.Settings.Patches.Add(patch);
 
             var listing = new ModListing<ISkyrimModGetter>(patch, true);
-            var lastListing = State.LoadOrder[State.PatchMod.ModKey];
-            State.LoadOrder.RemoveKey(State.PatchMod.ModKey);
-            State.LoadOrder.Add(listing);
-            State.LoadOrder.Add(lastListing);
+            var lastListing = Program.Settings.State.LoadOrder[Program.Settings.State.PatchMod.ModKey];
+            Program.Settings.State.LoadOrder.RemoveKey(Program.Settings.State.PatchMod.ModKey);
+            Program.Settings.State.LoadOrder.Add(listing);
+            Program.Settings.State.LoadOrder.Add(lastListing);
             return patch;
         }
 

@@ -45,7 +45,7 @@ namespace ArmorDistributor.NPC
             var cache = state.LoadOrder.ToMutableLinkCache();
             npc.Factions.ForEach(facs =>
             {
-                if (facs.Faction.TryResolve<IFactionGetter>(cache, out var faction) && HelperUtils.IsValidFaction(faction.EditorID)) {
+                if (facs.Faction.TryResolve<IFactionGetter>(cache, out var faction) && NPCUtils.IsValidFaction(faction.EditorID)) {
                     var fac = faction.EditorID;
                     var list = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, fac);
                     list.ForEach(l => FactionGroup[l] = fac);

@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using ArmorDistributor.Config;
+using log4net;
 using Mutagen.Bethesda.Skyrim;
 using Newtonsoft.Json.Linq;
 using Noggog;
@@ -7,8 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using static ArmorDistributor.Config.Settings;
-
 
 namespace ArmorDistributor.Utils
 {
@@ -20,18 +19,6 @@ namespace ArmorDistributor.Utils
         public static IEnumerable<T> GetEnumValues<T>()
         {
             return Enum.GetValues(typeof(T)).Cast<T>();
-        }
-
-        public static bool IsValidFaction(IFactionGetter faction)
-        {
-            return Regex.Match(faction.EditorID, PatcherSettings.ValidFactionRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(faction.EditorID, PatcherSettings.InvalidFactionRegex, RegexOptions.IgnoreCase).Success;
-        }
-
-        public static bool IsValidFaction(string faction)
-        {
-            return Regex.Match(faction, PatcherSettings.ValidFactionRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(faction, PatcherSettings.InvalidFactionRegex, RegexOptions.IgnoreCase).Success;
         }
 
         public static IEnumerable<string> GetRegexBasedGroup(Dictionary<string, string> regx, string str, string? optionalStr = null)

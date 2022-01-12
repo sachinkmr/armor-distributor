@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <Optimize>false</Optimize>
@@ -9,7 +9,7 @@
       <WarningsAsErrors></WarningsAsErrors>
       <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
       <WarningLevel>5</WarningLevel>
-      <NoWarn>1701;1702;CA1416;CS8602;CS8600;CS8604;CS8620;CS8619;CS8603;CS8631;CS8634</NoWarn>
+      <NoWarn>1701;1702;CA1416;CS8602;CS8600;CS8604;CS8620;CS8619;CS8603;CS8631;CS8634;CS8601</NoWarn>
       <DefineConstants>DEBUG;TRACE</DefineConstants>
       <DebugType>full</DebugType>
       <DebugSymbols>true</DebugSymbols>
@@ -17,7 +17,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
       <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-      <NoWarn>1701;1702;CA1416;CS8602;CS8600;CS8604;CS8620;CS8619;CS8603</NoWarn>
+      <NoWarn>1701;1702;CA1416;CS8602;CS8600;CS8604;CS8620;CS8619;CS8603;CS8601</NoWarn>
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
       <Optimize>false</Optimize>
     </PropertyGroup>
@@ -30,14 +30,18 @@
       <None Remove="Data\config\patcher-settings.json" />
       <None Remove="Data\DefaultUserSettings.json" />
       <None Remove="Data\settings - Copy.json" />
+      <None Remove="Data\settings.json" />
       <None Remove="Data\UserSettings.json" />
       <Content Include="Data\config\bodyslots.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <Content Include="Data\DefaultUserSettings.json">
+      <Content Include="Data\config\DefaultUserSettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <Content Include="Data\UserSettings.json">
+      <Content Include="Data\config\UserSettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Data\settings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <None Include="NPC\CombatStyle.cs" />
@@ -64,12 +68,12 @@
       </None>
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="log4net" Version="2.0.13" />
-      <PackageReference Include="Mutagen.Bethesda" Version="0.33.7-pr001" />
-      <PackageReference Include="Mutagen.Bethesda.Core" Version="0.33.7-pr001" />
+      <PackageReference Include="log4net" Version="2.0.14" />
+      <PackageReference Include="Mutagen.Bethesda" Version="0.35.0-pr003" />
+      <PackageReference Include="Mutagen.Bethesda.Core" Version="0.35.0-pr003" />
       <PackageReference Include="Mutagen.Bethesda.FormKeys.SkyrimSE" Version="2.1.0" />
-      <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.33.7-pr001" />
-      <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.20.6" />
+      <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.35.0-pr003" />
+      <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.21.4" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
 
