@@ -25,7 +25,6 @@
       <Compile Remove="OldCode\**" />
       <EmbeddedResource Remove="OldCode\**" />
       <None Remove="OldCode\**" />
-      <Compile Remove="NPC\CombatStyle.cs" />
       <None Remove="Data\config\bodyslots.json" />
       <None Remove="Data\config\patcher-settings.json" />
       <None Remove="Data\DefaultUserSettings.json" />
@@ -44,7 +43,6 @@
       <Content Include="Data\settings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
-      <None Include="NPC\CombatStyle.cs" />
       <None Update="Data\config\DefaultPatcherSettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>

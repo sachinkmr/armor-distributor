@@ -36,6 +36,7 @@ namespace ArmorDistributor.Config
         // Properties
         [Ignore]
         public ILinkCache<ISkyrimMod, ISkyrimModGetter>? Cache;
+        
         [Ignore]
         internal LeveledItem.Flag LeveledListFlag;
         
@@ -62,9 +63,9 @@ namespace ArmorDistributor.Config
 
             foreach (var pair in DefaultUserSettings.ArmorMods) {
                 if (ModKey.TryFromNameAndExtension(pair.Key, out var modKey) && Program.PatcherEnv.LoadOrder.ContainsKey(modKey)) {
-                    List<Categories> cats = new();
+                    List<TCategory> cats = new();
                     pair.Value.ForEach(c=> { 
-                        if(Enum.TryParse(c, out Categories cat))  cats.Add(cat);
+                        if(Enum.TryParse(c, out TCategory cat))  cats.Add(cat);
                     });
                     var item = new ModCategory(modKey, cats);
                     DefaultUserSettings.PatchableArmorMods.Add(item);
@@ -75,7 +76,7 @@ namespace ArmorDistributor.Config
         internal void Init(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             State = state;
-            Cache = state.LinkCache;
+            Cache = State.LinkCache;
             
             LeveledListFlag = LeveledItem.Flag.CalculateForEachItemInCount.Or(LeveledItem.Flag.CalculateFromAllLevelsLessThanOrEqualPlayer);
             LeveledNpcFlag = LeveledNpc.Flag.CalculateForEachItemInCount.Or(LeveledNpc.Flag.CalculateFromAllLevelsLessThanOrEqualPlayer);

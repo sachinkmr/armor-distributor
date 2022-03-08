@@ -20,11 +20,11 @@ namespace ArmorDistributor.Config
         [SettingName("Outfit Categories: ")]
         [SynthesisTooltip("Select the categories for the above selected armor mod to create outfits. " +
             "\nOutfits created by the mod will be distributes among these categories")]
-        public List<Categories> Categories = new();
+        public List<TCategory> Categories = new();
 
         public ModCategory() { }
 
-        public ModCategory(ModKey ArmorMod, List<Categories> Categories) { 
+        public ModCategory(ModKey ArmorMod, List<TCategory> Categories) { 
             this.ArmorMod = ArmorMod;
             this.Categories = Categories;
         }

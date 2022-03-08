@@ -4,7 +4,7 @@
   "SLPLeveledListPrefix": "_ZZS_",
   "OutfitPatchedKeywordEID": "NpcOutfitPatched",
 
-  "InvalidOutfitRegex": "Dwemer|(MQ[0-9])|(MS[0-9])|CLWGilded|CLWShadow|Mutant|Headless|Horse|Draugr|Skin|Dragon|Quest|DEMO|Vacated|Hidden|Skeleton|slut",
+  "InvalidOutfitRegex": "Dwemer|(MQ[0-9])|(MS[0-9])|CLWGilded|CLWShadow|Mutant|Headless|Horse|Draugr|Skin|Dragon|Quest|DEMO|Vacated|Hidden|Skeleton|slut|Falmer",
   "ValidOutfitRegex": "GuardSon|Redguard|Dawnguard|FSGuard|SkinTight",
   "InvalidArmorsRegex": "(MQ[0-9])|(MS[0-9])|Dummy|Horse|Mutant|Headless|Corpse|Fake|Template|Skin|Nake|Dummy|replica|skeleton|camp|backpack|Havok|damage|slut|nude|Skeleton",
   "ValidArmorsRegex": "GuardSon|Redguard|Dawnguard|FSGuard|SkinTight",
@@ -26,8 +26,6 @@
     "106661:Skyrim.esm",
     "0A199B:Skyrim.esm"
   ],
-
-  "DividableFactions": "Dunmer|Altmer|Bosmer|Falmer|Nord|Breton|Orc|Argonian|Khajiit|Vampire|Redguard|Thief|Bandit|Dawnguard|Thalmor|Imperial|Stormcloak|Forsworn|Mercenary|Daedra",
 
   "ArmorTypeRegex": {
     "Heavy": "defen|Beast|2H|Tank|ALL|Melee|Heavy|Berserker|Feral|DA13Heavy|GuardSon|Knight|Marauder|Berserker|lalawench_outfit_heavy|OBIS_Feral::staff|Destruction|Conjuration|Restoration|Alteration|Illusion|Mage|Missile|Light|Cloth|Magic|Rose|Robe|JVD|Nubia|Digger|Archer|Assassin|caller|Wizard|Sorcer|Necro|Monk|Shamen|priest|Bow",

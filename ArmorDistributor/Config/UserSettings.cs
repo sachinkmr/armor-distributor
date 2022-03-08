@@ -31,6 +31,19 @@ namespace ArmorDistributor.Config
         [SynthesisTooltip("Outfits will not be assigned to unique NPCs when seleted")]
         public bool FilterUniqueNPC = false;
 
+
+        [MaintainOrder]
+        [JsonDiskName("ProcessNPCs")]
+        [SettingName("Process NPCs: ")]
+        [SynthesisTooltip("Use NPC race/name/outfit/faction/class to distribute the outfit")]
+        public bool ProcessNPCs = true;
+
+        [MaintainOrder]
+        [JsonDiskName("NameBasedDistribution")]
+        [SettingName("Name Based Distribution: ")]
+        [SynthesisTooltip("Distribute armors based on the Generic NPC names")]
+        public bool NameBasedDistribution = true;
+
         [MaintainOrder]
         [JsonDiskName("RaceBasedDistribution")]
         [SettingName("Race Based Distribution: ")]
@@ -53,7 +66,7 @@ namespace ArmorDistributor.Config
         [JsonDiskName("SkipGuardDistribution")]
         [SettingName("Skip Guard Distribution: ")]
         [SynthesisTooltip("Distribute armors to the gurads")]
-        public bool SkipGuardDistribution = true;
+        public bool SkipGuardDistribution = false;
 
         [MaintainOrder]
         [JsonDiskName("SkipSluttyOutfit")]
@@ -66,6 +79,30 @@ namespace ArmorDistributor.Config
         [SettingName("Bash Patch For Leveled Lists: ")]
         [SynthesisTooltip("Outfits will not be assigned to unique NPCs when seleted")]
         public bool CreateBashPatch = true;
+
+        [MaintainOrder]
+        [JsonDiskName("MinimumNpcForOutfit")]
+        [SettingName("Minimum Npcs For Outfit: ")]
+        [SynthesisTooltip("Only outfits assigned to minimum number of NPCs will be patched")]
+        public int MinimumNpcForOutfit = 0;
+
+        [MaintainOrder]
+        [JsonDiskName("PatchNonVanillaOutfits")]
+        [SettingName("Patch Non Vanilla Outfits: ")]
+        [SynthesisTooltip("Outfits from other mods (mods except Skyrim and its DLC) will be patched or modified if checked")]
+        public bool PatchNonVanillaOutfits = false;
+
+        [MaintainOrder]
+        [JsonDiskName("DistributeWeapons")]
+        [SettingName("Distribute Weapons: ")]
+        [SynthesisTooltip("Distribute Weapons along with outfit. Note:- This is very slow")]
+        public bool DistributeWeapons = true;
+
+        [MaintainOrder]
+        [JsonDiskName("DumpDebugData")]
+        [SettingName("Dump Debug Data: ")]
+        [SynthesisTooltip("Data will help in debugging the NPC related information")]
+        public bool DumpDebugData = true;
 
         [MaintainOrder]
         [JsonDiskName("NPCToSkip")]
@@ -95,7 +132,7 @@ namespace ArmorDistributor.Config
         [SettingName("Categories To Skip: ")]
         [JsonDiskName("CategoriesToSkip")]
         [SynthesisTooltip("Patcher will not assign the outfits to the selected categories")]
-        public List<Categories> CategoriesToSkip { get; set; } = new();
+        public List<TCategory> CategoriesToSkip { get; set; } = new();
 
         [Ignore]
         [JsonDiskName("ArmorMods")]
@@ -118,7 +155,7 @@ namespace ArmorDistributor.Config
                 {
                     Logger.DebugFormat("Loading NPCs mods for outfits... ");
                     OutfitMods = order.PriorityOrder
-                    .Where(x => !ModsToSkip.Contains(x.ModKey) && x.Mod.Npcs.Any())
+                    .Where(x => !ModsToSkip.Contains(x.ModKey) && x.Mod!=null && x.Mod.Npcs.Any())
                     .Select(x => x.ModKey)
                     .ToList();
                 }
@@ -139,6 +176,13 @@ namespace ArmorDistributor.Config
                 // Armor Categories to skip
                 if (CategoriesToSkip == null || !CategoriesToSkip.Any()) {
                     CategoriesToSkip = Settings.DefaultUserSettings.CategoriesToSkip;
+                }
+
+                if (!ProcessNPCs) {
+                    RaceBasedDistribution = false;
+                    NameBasedDistribution = false;
+                    ClassBasedDistribution = false;
+                    FactionBasedDistribution = false;
                 }
             }
         }

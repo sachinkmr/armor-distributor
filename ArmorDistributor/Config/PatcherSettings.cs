@@ -1,6 +1,6 @@
 ﻿using Mutagen.Bethesda.Plugins;
 using System.Collections.Generic;
-
+using System.Text.RegularExpressions;
 
 namespace ArmorDistributor.Config
 {
@@ -25,17 +25,15 @@ namespace ArmorDistributor.Config
         public string? SLPLeveledListPrefix;
         public string? OutfitPatchedKeywordEID;
 
+        public Regex ArmorMaterialRegex = new(@"(?:Armor|Weap(?:on)?)?Materi[ae]l(\w+)", RegexOptions.IgnoreCase);
         public bool AddArmorsToMannequin = false;
         public string MannequinOutfitEID="";
         public FormKey OutfitPatchedKeyword = FormKey.Null;
-
-        public List<string> ClothesType = new();
-        public List<string> RobesType = new();
         public List<string> Masters = new();
 
         public Dictionary<string, string> OutfitRegex = new();
         public Dictionary<string, string> ArmorTypeRegex = new();
-        public Dictionary<string, string> CombatStyleRegex = new();
+        public Dictionary<string, string> SkippableRegex = new();
 
         public PatcherSettings init() {
             MannequinOutfitEID = "ZZZ_Mannequins" + this.OutfitSuffix;

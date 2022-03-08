@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ArmorDistributor.Armor
+﻿namespace ArmorDistributor.Armor
 {
-    public class TArmorGender
+    public enum TGender
     {
-        public const string Female = "F";
-        public const string Male = "M";
-        public const string Common = "C";
-        public const string Unknown = "U";
+        Female,
+        Male,
+        Common,
+        Unknown,
     }
 }

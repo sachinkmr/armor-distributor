@@ -1,19 +1,13 @@
 ﻿using log4net;
-using Mutagen.Bethesda;
-using Mutagen.Bethesda.FormKeys.SkyrimSE;
 using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
 using Noggog;
 using ArmorDistributor.Config;
 using ArmorDistributor.Utils;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks.Dataflow;
-using Mutagen.Bethesda.Strings;
 
 namespace ArmorDistributor.Armor
 {
@@ -22,17 +16,16 @@ namespace ArmorDistributor.Armor
         private static readonly ILog Logger = LogManager.GetLogger(typeof(TArmorSet));
         public HashSet<TArmor> Armors { get; }
         public HashSet<FormKey> Weapons { get; }
-
         public TArmor Body { get; }
-        public string Gender { get; }
+        public TGender Gender { get; }
         public string Material { get; }
-        public string Type { get; }
+        public TArmorType Type { get; }
         public string Prefix { get; }
 
         public bool hasShield;
         public bool hasHalmet;
 
-        private FormKey LLFormKey = FormKey.Null;
+        public FormKey LLFormKey = FormKey.Null;
 
         public TArmorSet(TArmor body)
         {
@@ -66,23 +59,25 @@ namespace ArmorDistributor.Armor
             weapons.ForEach(a => Weapons.Add(a.FormKey));
         }
 
+        public void AddWeapons(IEnumerable<TWeapon> weapons)
+        {
+            weapons.ForEach(a => Weapons.Add(a.FormKey));
+        }
+
         public void AddWeapon(IWeaponGetter weapon)
         {
             Weapons.Add(weapon.FormKey);
         }
 
-        [MethodImpl(MethodImplOptions.Synchronized)]
-        public FormKey CreateLeveledList(ISkyrimMod patchMod, bool forceCreate = false)
+        public ISkyrimMod CreateLeveledList(ISkyrimMod Patch)
         {
             LeveledItem ll = null;
-            if (forceCreate || LLFormKey == FormKey.Null)
-            {
-                var items = Armors.Select(a => a.FormKey.AsLink<IItemGetter>())
+            Patch = FileUtils.GetIncrementedMod(Patch);
+            var items = Armors.Select(a => a.FormKey.AsLink<IItemGetter>())
                     .Union(Weapons.Select(a => a.AsLink<IItemGetter>()).EmptyIfNull());
-                ll = OutfitUtils.CreateLeveledList(patchMod, items, Prefix, 1, LeveledItem.Flag.UseAll);
-                LLFormKey = ll.FormKey;
-            }
-            return LLFormKey;
+            ll = OutfitUtils.CreateLeveledList(Patch, items, Prefix, 1, LeveledItem.Flag.UseAll);
+            LLFormKey = ll.FormKey;
+            return Patch;
         }
 
         public override bool Equals(object? obj)
@@ -98,35 +93,28 @@ namespace ArmorDistributor.Armor
 
         public void CreateMatchingSetFrom(IEnumerable<IWeaponGetter> weapons, int bodyCounts, bool addAll = false)
         {
-            ConcurrentDictionary<string, SortedSet<IWeaponGetter>> map = new();
-            ConcurrentDictionary<string, ConcurrentDictionary<string, IWeaponGetter>> matchedMap = new();
+            CreateMatchingSetFrom(weapons.Select(w => new TWeapon(w)).ToHashSet(), bodyCounts, addAll);
+        }
+
+        public void CreateMatchingSetFrom(HashSet<TWeapon> weapons, int bodyCounts, bool addAll = false)
+        {
+            Dictionary<string, Dictionary<int, TWeapon>> matchedMap = new();
             bool matched = false;
             if (!addAll)
             {
-                var block = new ActionBlock<IWeaponGetter>(
-                   weapon =>
-                   {
-                       var weaponName = ArmorUtils.ResolveItemName(weapon);
-                       if (HelperUtils.GetMatchingWordCount(Body.Name, weaponName) > 0)
-                       {
-                           matched = true;
-                           var type = weapon.Data.AnimationType.ToString();
-                           if (!matchedMap.ContainsKey(type)) matchedMap.TryAdd(type,
-                              new ConcurrentDictionary<string, IWeaponGetter>());
-                           matchedMap.GetValueOrDefault(type)
-                            .TryAdd(HelperUtils.GetMatchingWordCount(Body.Name, weaponName).ToString(),weapon);
-                       }
-                   }, new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = 10 });
-
                 foreach (var weapon in weapons)
-                    block.Post(weapon);
-                block.Complete();
-                block.Completion.Wait();
-
+                {
+                    if (HelperUtils.GetMatchingWordCount(Body.Name, weapon.Name, false) > 0)
+                    {
+                        matched = true;
+                        matchedMap.GetOrAdd(weapon.Type)
+                         .GetOrAdd(HelperUtils.GetMatchingWordCount(Body.Name, weapon.Name, false), () => weapon);
+                    }
+                }
                 var weaps = matchedMap.Values.Select(x => x.OrderBy(k => k.Key).Last().Value);
                 this.AddWeapons(weaps);
             }
-            else if(addAll || (!matched && bodyCounts < 5)) this.AddWeapons(weapons);
+            else if (addAll || (!matched && bodyCounts < 5)) this.AddWeapons(weapons);
         }
 
         public void CreateMatchingSetFrom(IEnumerable<IArmorGetter> others, bool addAll, int commonStrCount, int commanEID)
@@ -138,7 +126,7 @@ namespace ArmorDistributor.Armor
         {
             if (!addAll)
             {
-                ConcurrentDictionary<TBodySlot, ConcurrentDictionary<int, TArmor>> armors = new();
+                Dictionary<TBodySlot, Dictionary<int, TArmor>> armors = new();
                 if (!others.Any())
                 {
                     Logger.DebugFormat("No matching armor found for {0}: {1}", Body.EditorID, Body.FormKey);
@@ -148,24 +136,12 @@ namespace ArmorDistributor.Armor
                 foreach (var a in others) {
                     // Name based matching
                     var aname = a.Name;
-                    int c = HelperUtils.GetMatchingWordCount(bname, aname) - commonName;
+                    int c = HelperUtils.GetMatchingWordCount(bname, aname, false) - commonName- commanEID;
                     if (c > 0) a.BodySlots.ForEach(flag => armors.GetOrAdd(flag).TryAdd(c, a));
                 }
 
-                if (!armors.Any()) {
-                    var beid = HelperUtils.SplitString(Body.EditorID);
-                    foreach (var a in others)
-                    {
-                        // EditorID based matching
-                        var aeid = HelperUtils.SplitString(a.EditorID);
-                        int d = HelperUtils.GetMatchingWordCount(beid, aeid)- commanEID;
-                        if (d > 0) a.BodySlots.ForEach(flag => armors.GetOrAdd(flag).TryAdd(d, a));
-                    }
-                }
                 var marmors = armors.Values.Select(x => x.OrderBy(k => k.Key).Last().Value).Distinct();
                 this.AddArmors(marmors);
-                Logger.DebugFormat("Created Armors Set: {0}=> [{1}]", Body.FormKey.ToString(),
-                    string.Join(", ", Armors.Select(x => x.Name)));
             }
             else this.AddArmors(others);
         }

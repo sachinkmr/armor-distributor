@@ -45,55 +45,77 @@ namespace ArmorDistributor.Utils
         .ToHashSet();
         internal static IEnumerable<TBodySlot> ArmorSlots = HelperUtils.GetEnumValues<TBodySlot>();
 
-
-        private static string GetClothingType(IArmorGetter armor)
+        public static string GetName(IArmorGetter armor)
         {
-            // MAtching Clothing and Robes types
-            string eid = armor.EditorID;
-            string name = armor.Name == null || armor.Name.String == null ? "" : armor.Name.String;
-            var matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, armor.EditorID, name);
-            if (!matches.Any())
-                matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, name);
-
-            if (!matches.Any())
-                matches = Settings.PatcherSettings.RobesType.Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
-            || Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
-            if (matches.Any())
-                return matches.First()=="Robe"?"Mage": matches.First();
-
-            if (!matches.Any())
-                matches = Settings.PatcherSettings.ClothesType
-                    .Where(x => Regex.Match(name, x, RegexOptions.IgnoreCase).Success
-                    || Regex.Match(eid, x, RegexOptions.IgnoreCase).Success);
-            if (matches.Any()) 
-                return matches.First();
-
-            var type = "Unknown";
-            //type=armor.Value > 3 ? "Fine Clothes" : "Poor Clothes";
-            Logger.DebugFormat("Unknown: {0}, {1} | Assigned: {2} ", eid, name, type);
-            return type;
+            return armor.Name == null || armor.Name.String.IsNullOrEmpty()
+                ? HelperUtils.SplitString(armor.EditorID) : armor.Name.ToString();
         }
 
-        private static string GetItemMaterial(IArmorGetter armor)
+        public static bool IsMissingMatchingArmor(ILinkCache cache, IArmorGetter armor) {
+            if(!IsEligibleForMeshMapping(armor))  return false;
+            var addon = armor.Armature.FirstOrDefault().Resolve<IArmorAddonGetter>(cache);
+            return addon.WorldModel == null || addon.WorldModel.Male == null || addon.WorldModel.Female == null;
+        }
+
+        private static string GetClothingType(IArmorGetter armor, bool armorType=true)
         {
-            Regex mRegex = new(@"(?:Armor|Weap(?:on)?)?Materi[ae]l(\w+)", RegexOptions.IgnoreCase);
+            // Matching Clothing and Robes types
+            string name = GetFullName(armor);
+            var matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, name);
+
+            if (!matches.Any())
+                matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.ArmorTypeRegex, name);
+            if (matches.Contains(TArmorType.Wizard.ToString()))
+                return TArmorType.Wizard.ToString();
+
+            if (matches.Contains(TArmorType.Cloth.ToString()))
+                return TArmorType.Cloth.ToString();
+            Logger.DebugFormat("Unknown Clothing Type: [{0}][{1}]", armor.FormKey, name);
+            return TArmorType.Unknown.ToString();
+        }
+
+        private static string GetArmorMaterial(IArmorGetter armor)
+        {
+            Regex mRegex = Settings.PatcherSettings.ArmorMaterialRegex;
             ILinkCache cache = Program.Settings.Cache;
-            if (armor.Keywords != null)
-                foreach (FormLink<IKeywordGetter> keyword in armor.Keywords)
-                    if (ArmorMaterials.Contains(keyword))
-                    {
-                        var val = mRegex.Match(cache.Resolve<IKeywordGetter>(keyword.FormKey).EditorID);
-                        return val.Groups[1].Value+"Armor";
-                    }
-            Logger.DebugFormat("Missing Armor Material Keyword: " + armor.FormKey.ToString());
-            var matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, armor.EditorID);
-            return matches.Any() ? matches.First() : "Unknown";
+            string fullNmae = "";
+            armor.Keywords.EmptyIfNull().Where(x=> !x.IsNull)
+                .Select(x => cache.Resolve<IKeywordGetter>(x.FormKey).EditorID)
+                .ForEach(x => fullNmae += x);
+
+            fullNmae += GetFullName(armor);
+            var matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, fullNmae);
+            if(matches.Any())
+                return matches.First();
+            Logger.DebugFormat("Unknown Material Type: [{0}][{1}]", armor.FormKey, fullNmae);
+            return TArmorType.Unknown.ToString();
         }
 
         public static string GetMaterial(IArmorGetter item)
         {
-            return !IsCloth(item) ? GetItemMaterial(item) :
-                HelperUtils.ToCamelCase(GetClothingType((IArmorGetter)item));
+            // Checking for material first
+            ILinkCache cache = Program.Settings.Cache;
+            string fullName = "";
+            item.Keywords.EmptyIfNull().Where(x => !x.IsNull)
+                .Select(x => cache.Resolve<IKeywordGetter>(x.FormKey).EditorID)
+                .ForEach(x => fullName += x);
+
+            fullName += GetFullName(item);
+            var matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.OutfitRegex, fullName);
+            if (matches.Any())
+                return matches.First();
+
+            if (!matches.Any())
+                matches = HelperUtils.GetRegexBasedGroup(Settings.PatcherSettings.ArmorTypeRegex, fullName);
+            
+            if (matches.Contains(TArmorType.Wizard.ToString()))
+                return TArmorType.Wizard.ToString();
+
+            if (matches.Contains(TArmorType.Cloth.ToString()))
+                return TArmorType.Cloth.ToString();
+
+            Logger.DebugFormat("Unknown Armor/Clothing Type: [{0}][{1}]", item.FormKey, fullName);
+            return TArmorType.Unknown.ToString();
         }
 
         public static bool IsCloth(IArmorGetter item)
@@ -104,77 +126,53 @@ namespace ArmorDistributor.Utils
 
         public static bool IsValidArmor(IArmorGetter armor)
         {
-            var name = armor.Name==null ? "" : armor.Name.String;
-            return !armor.MajorFlags.HasFlag(Mutagen.Bethesda.Skyrim.Armor.MajorFlag.NonPlayable)
-                    && armor.Armature != null && armor.Armature.Count > 0
-                    && (Regex.Match(armor.EditorID, Settings.PatcherSettings.ValidArmorsRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(armor.EditorID, Settings.PatcherSettings.InvalidArmorsRegex, RegexOptions.IgnoreCase).Success)
-                    && (Regex.Match(name, Settings.PatcherSettings.ValidArmorsRegex, RegexOptions.IgnoreCase).Success
-                    || !Regex.Match(name, Settings.PatcherSettings.InvalidArmorsRegex, RegexOptions.IgnoreCase).Success);
+            var name = GetFullName(armor);
+            return Regex.IsMatch(name, Settings.PatcherSettings.ValidArmorsRegex, RegexOptions.IgnoreCase)
+                    || !Regex.IsMatch(name, Settings.PatcherSettings.InvalidArmorsRegex, RegexOptions.IgnoreCase);
         }
 
-        public static string GetArmorType(IArmorGetter armor)
+        public static TArmorType GetArmorType(IArmorGetter armor)
         {
             if (IsCloth(armor))
                 return Regex.IsMatch(armor.EditorID, Settings.PatcherSettings.ArmorTypeRegex["Wizard"], RegexOptions.IgnoreCase)
                     ? TArmorType.Wizard : TArmorType.Cloth;
             return armor.BodyTemplate.ArmorType == ArmorType.HeavyArmor ? TArmorType.Heavy : TArmorType.Light;
-
-            //if (armor.HasKeyword(Skyrim.Keyword.ArmorJewelry)
-            //    || armor.HasKeyword(Skyrim.Keyword.ClothingNecklace)
-            //    || armor.HasKeyword(Skyrim.Keyword.VendorItemJewelry))
-            //    return TArmorType.Jewelry;
-
-
-            //if (armor.HasKeyword(Skyrim.Keyword.ArmorShield))
-            //    return TArmorType.Shield;
-
-            //if (armor.HasKeyword(Skyrim.Keyword.ArmorHeavy)
-            //    || armor.BodyTemplate.ArmorType.Equals(ArmorType.HeavyArmor))
-            //    return TArmorType.Heavy;
-
-            //if (armor.HasKeyword(Skyrim.Keyword.ArmorLight)
-            //    || armor.BodyTemplate.ArmorType.Equals(ArmorType.LightArmor))
-            //    return TArmorType.Light;
-
-            //if (armor.HasKeyword(Skyrim.Keyword.ArmorHelmet))
-            //    return TArmorType.Helmet;
-            //return TArmorType.Unknown;
         }
 
-        public static string GetGender(IArmorGetter armor)
+        public static TGender GetGender(IArmorGetter armor)
         {
             if (armor.Armature != null && armor.Armature.Count > 0 && Program.Settings.Cache.TryResolve<IArmorAddonGetter>(armor.Armature.FirstOrDefault().FormKey, out var addon)) {
-                if (addon.WorldModel == null) return TArmorGender.Unknown;
+                if (addon.WorldModel == null) return TGender.Unknown;
                 if (addon.WorldModel.Male != null && addon.WorldModel.Female != null)
-                    return TArmorGender.Common;
+                    return TGender.Common;
                 if (addon.WorldModel.Male == null)
-                    return TArmorGender.Female;
+                    return TGender.Female;
                 if (addon.WorldModel.Female == null)
-                    return TArmorGender.Male;
+                    return TGender.Male;
             }
-            return TArmorGender.Unknown;
+            return TGender.Unknown;
         }
 
         public static IEnumerable<TBodySlot> GetBodySlots(IArmorGetter armor)
         {
-            IArmorAddonGetter addon = armor.Armature.FirstOrDefault().Resolve(Program.Settings.Cache);
-            return GetBodySlots(addon);
+            if (armor.Armature.FirstOrDefault().TryResolve<IArmorAddonGetter>(Program.Settings.Cache, out var addon)) {
+                return GetBodySlots(addon);
+            }
+            return Enumerable.Empty<TBodySlot>();
         }
 
         public static IEnumerable<TBodySlot> GetBodySlots(IArmorAddonGetter addon)
         {
-            List<TBodySlot> list = new();
             var flags = addon.BodyTemplate.FirstPersonFlags;
             return ArmorSlots.Where(x => flags.HasFlag((BipedObjectFlag)x));
         }
 
         public static bool IsUpperArmor(IArmorGetter x)
         {
-            var addon = x.Armature.FirstOrDefault().Resolve(Program.Settings.Cache);
-            return addon.BodyTemplate.FirstPersonFlags.HasFlag(BipedObjectFlag.Body)
-            || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.Chest)
-            || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.ChestUnder);
+            var addons = x.Armature.EmptyIfNull().Select(x => x.Resolve(Program.Settings.Cache));
+            return addons.EmptyIfNull().Any(addon => addon.BodyTemplate.FirstPersonFlags.HasFlag(BipedObjectFlag.Body)
+                || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.Chest)
+                || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.ChestUnder));
         }
 
         public static bool IsUpperArmor(TBodySlot x)
@@ -186,15 +184,19 @@ namespace ArmorDistributor.Utils
 
         public static bool IsBodyArmor(IArmorGetter x)
         {
-            var addons = x.Armature.EmptyIfNull().Select(x => x.Resolve(Program.Settings.Cache));
-            return addons.EmptyIfNull().Any(addon => addon.BodyTemplate.FirstPersonFlags.HasFlag(BipedObjectFlag.Body));
+            var slots = GetBodySlots(x);
+            var status =  slots.Contains(TBodySlot.Body) 
+            && !(slots.Contains(TBodySlot.Back)
+             || slots.Contains(TBodySlot.Decapitate)
+             || slots.Contains(TBodySlot.DecapitateHead));
+            return status;
         }
 
         public static bool IsLowerArmor(IArmorGetter x)
         {
-            var addon = x.Armature.FirstOrDefault().Resolve(Program.Settings.Cache);
-            return addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.Pelvis)
-            || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.PelvisUnder);
+            var addons = x.Armature.EmptyIfNull().Select(x => x.Resolve(Program.Settings.Cache));
+            return addons.EmptyIfNull().Any(addon => addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.Pelvis)
+            || addon.BodyTemplate.FirstPersonFlags.HasFlag((BipedObjectFlag)TBodySlot.PelvisUnder));
         }
 
         public static bool IsJewelry(IArmorGetter x) {
@@ -226,6 +228,19 @@ namespace ArmorDistributor.Utils
             });
         }
 
+        public static string GetFullName(IArmorGetter item)
+        {
+            var words = HelperUtils.SplitString(item.EditorID + (item.Name == null ? "" : item.Name.String)).Split(' ');
+            return string.Join(" ", new HashSet<string>(words));
+        }
+
+        public static string GetFullName(IWeaponGetter item)
+        {
+            var words = HelperUtils.SplitString(item.EditorID + (item.Name == null ? "" : item.Name.String)).Split(' ');
+            return string.Join(" ", new HashSet<string>(words));
+        }
+
+
         public static string ResolveItemName(IArmorGetter item) {
             return item.Name == null || item.Name.String.Length < 1 ? item.EditorID : item.Name.ToString();
         }
@@ -235,19 +250,29 @@ namespace ArmorDistributor.Utils
             return item.Name == null || item.Name.String.Length < 1 ? item.EditorID : item.Name.ToString();
         }
 
-        public static void AddArmorsToMannequin(IEnumerable<TArmorSet> armorSets)
+        public static bool IsEligibleForMeshMapping(IArmorGetter armor)
         {
-            Console.WriteLine("Distributing Armor sets to Mannequins...");
-
-            ISkyrimMod patch = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "Mannequins.esp");
-            var form = patch.FormLists != null && patch.FormLists.Any()
-                ? patch.FormLists.First() : patch.FormLists.AddNew("MannequinsArmorForm");
-
-            armorSets = armorSets.Distinct();
-            var lls = armorSets.Select(set => set.CreateLeveledList(patch).AsLink<IItemGetter>());
-            form.Items.AddRange(lls);
-            Console.WriteLine("Distributed Armor sets to Mannequins...\n\n");
+            return IsValidArmor(armor)
+                    && !Regex.IsMatch(GetFullName(armor), "Shield", RegexOptions.IgnoreCase)
+                    && armor.Armature != null
+                    && armor.Armature.Count > 0
+                    && !armor.HasKeyword(Skyrim.Keyword.ArmorShield)
+                    && !GetBodySlots(armor).Contains(TBodySlot.Shield);
         }
+
+        //public static void AddArmorsToMannequin(IEnumerable<TArmorSet> armorSets)
+        //{
+        //    Logger.InfoFormat("Distributing Armor sets to Mannequins...");
+
+        //    ISkyrimMod patch = FileUtils.GetOrAddPatch(Settings.PatcherSettings.PatcherPrefix + "Mannequins.esp");
+        //    var form = patch.FormLists != null && patch.FormLists.Any()
+        //        ? patch.FormLists.First() : patch.FormLists.AddNew("MannequinsArmorForm");
+
+        //    armorSets = armorSets.Distinct();
+        //    var lls = armorSets.Select(set => set.CreateLeveledList(patch).AsLink<IItemGetter>());
+        //    form.Items.AddRange(lls);
+        //    Logger.InfoFormat("Distributed Armor sets to Mannequins...\n\n");
+        //}
 
     }
 }

@@ -1,5 +1,6 @@
 ﻿using ArmorDistributor.Config;
 using log4net;
+using Mutagen.Bethesda.Plugins.Aspects;
 using Mutagen.Bethesda.Skyrim;
 using Newtonsoft.Json.Linq;
 using Noggog;
@@ -19,6 +20,11 @@ namespace ArmorDistributor.Utils
         public static IEnumerable<T> GetEnumValues<T>()
         {
             return Enum.GetValues(typeof(T)).Cast<T>();
+        }
+
+        public static T ToEnum<T>(this string value)
+        {
+            return (T) Enum.Parse(typeof(T), value, true);
         }
 
         public static IEnumerable<string> GetRegexBasedGroup(Dictionary<string, string> regx, string str, string? optionalStr = null)
@@ -81,10 +87,12 @@ namespace ArmorDistributor.Utils
             return hash;
         }
 
-        public static int GetMatchingWordCount(string strOne, string strTwo)
+        public static int GetMatchingWordCount(string strOne, string strTwo, bool split=true)
         {
-            strOne = SplitString(strOne);
-            strTwo = SplitString(strTwo);
+            if (split) {
+                strOne = SplitString(strOne);
+                strTwo = SplitString(strTwo);
+            }           
 
             var tokensOne = strOne.Split(" ", StringSplitOptions.RemoveEmptyEntries);
             var list = tokensOne.Where(x => strTwo.Contains(x));
@@ -97,7 +105,7 @@ namespace ArmorDistributor.Utils
             return Regex.Replace(underscore, "([a-z0-9])([A-Z])", "$1 $2", RegexOptions.Compiled).Trim();
         }
 
-        public static void mergePlugins(string loc, bool show) {
+        public static void MergePlugins(string loc, bool show) {
             JObject data = JObject.Parse(File.ReadAllText(loc));
             var plugins = data.GetValue("plugins");
             foreach (var plugin in plugins) {
@@ -107,12 +115,16 @@ namespace ArmorDistributor.Utils
                 var src = show ? Path.Combine(fileLoc, "optional", filename) : Path.Combine(fileLoc, filename);
                 var dest = show ? Path.Combine(fileLoc,filename): Path.Combine(fileLoc, "optional", filename);
                 if (!File.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest));
-                if (File.Exists(src)) File.Move(src, dest);
+                try {
+                    if (File.Exists(src)) File.Move(src, dest, true); 
+                } catch (Exception e) {
+                    Logger.ErrorFormat("File: {0} :: {1}",filename,e.Message.ToString());
+                }
+                
             }
-            Console.WriteLine("sac");
         }
 
-        internal static void updateSPIDFile(string mergeMap, List<string> spidINIs, string mergedMod)
+        internal static void UpdateSPIDFile(string mergeMap, List<string> spidINIs, string mergedMod)
         {
             var trimmer = new Char[] { '0' };
             JObject data = JObject.Parse(File.ReadAllText(mergeMap));

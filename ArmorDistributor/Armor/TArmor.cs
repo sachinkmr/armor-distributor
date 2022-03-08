@@ -15,10 +15,10 @@ namespace ArmorDistributor.Armor
         public IEnumerable<TBodySlot> BodySlots { get; }
         public FormKey FormKey { get; }
         public string Material { get; }
-        public string Type { get; }
+        public TArmorType Type { get; }
         public string? EditorID { get; }
-        public string Gender { get; }
-        public string?  Name { get; }
+        public TGender Gender { get; }
+        public string  Name { get; }
 
         public TArmor(IArmorGetter armor, string material)
         {
@@ -28,8 +28,7 @@ namespace ArmorDistributor.Armor
             BodySlots = ArmorUtils.GetBodySlots(armor);
             Type = ArmorUtils.GetArmorType(armor);
             Gender = ArmorUtils.GetGender(armor);
-            Name = armor.Name == null || armor.Name.String.IsNullOrEmpty() 
-                ? HelperUtils.SplitString( armor.EditorID ): armor.Name.ToString();        
+            Name = ArmorUtils.GetFullName(armor);        
         }
 
         public TArmor(IArmorGetter armor): 

@@ -1,4 +1,5 @@
 ﻿using ArmorDistributor.Config;
+using ArmorDistributor.Converters;
 using log4net;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Plugins;
@@ -59,8 +60,8 @@ namespace ArmorDistributor.Utils
                 .ToList();
         }
 
-        public static bool CanESLify(ISkyrimMod mod) {
-            return mod.EnumerateMajorRecords().Where(x => x.FormKey.ModKey.Equals(mod.ModKey)).Count() < 2040;
+        public static bool CanESLify(ISkyrimMod mod, int count = 2000) {
+            return mod.EnumerateMajorRecords().Where(x => x.FormKey.ModKey.Equals(mod.ModKey)).Count() < count;
         }
 
         public static T ReadJson<T>(string filePath)
@@ -72,21 +73,24 @@ namespace ArmorDistributor.Utils
 
         public static void WriteJson(string filePath, Object classInfo)
         {
+            JsonConverter[] converters = new JsonConverter[] {
+                new FormKeyConverter(),
+                new BodySlotConverter()
+            };
             using StreamWriter r = new(filePath);
-            r.Write(JsonConvert.SerializeObject(classInfo, Formatting.Indented));
+            r.Write(JsonConvert.SerializeObject(classInfo, Formatting.Indented, converters));
             r.Flush();
         }
 
         public static void SaveMod(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, ISkyrimMod patch)
         {
             var patchFile = patch.ModKey.FileName;
-
             var records = patch.EnumerateMajorRecords().Where(r=> r.FormKey.ModKey.Equals(patch.ModKey));
-            if (records.Count() < 2048)
+            if (CanESLify(patch, 2047))
                 patch.ModHeader.Flags = SkyrimModHeader.HeaderFlag.LightMaster;
             string location = Path.Combine(state.DataFolderPath, patchFile);
             patch.WriteToBinary(location, FileUtils.SafeBinaryWriteParameters);
-            Console.WriteLine("Saved Patch: {0} ", patchFile);
+            Logger.InfoFormat("Saved Patch: {0} ", patchFile);
         }
 
         [MethodImpl(MethodImplOptions.Synchronized)]
@@ -103,10 +107,7 @@ namespace ArmorDistributor.Utils
             Program.Settings.Patches.Add(patch);
 
             var listing = new ModListing<ISkyrimModGetter>(patch, true);
-            var lastListing = Program.Settings.State.LoadOrder[Program.Settings.State.PatchMod.ModKey];
-            Program.Settings.State.LoadOrder.RemoveKey(Program.Settings.State.PatchMod.ModKey);
             Program.Settings.State.LoadOrder.Add(listing);
-            Program.Settings.State.LoadOrder.Add(lastListing);
             return patch;
         }
 
