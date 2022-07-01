@@ -15,28 +15,27 @@ namespace ArmorDistributor.Config
         public string? ValidOutfitRegex;
         public string? ValidNpcRegex;
         public string? InvalidNpcRegex;
-        //public string? DividableFactions;
+        public string? SluttyRegex;
+        public string? KeywordFile;
+        public string? ValidMaterial;
+        public string? InvalidMaterial;
 
-        // Prefixes and sufixes
+        // Prefixes and suffixes
         public string? PatcherPrefix;
         public string? LeveledListPrefix;
         public string? OutfitPrefix;
         public string? OutfitSuffix;
-        public string? SLPLeveledListPrefix;
-        public string? OutfitPatchedKeywordEID;
 
-        public Regex ArmorMaterialRegex = new(@"(?:Armor|Weap(?:on)?)?Materi[ae]l(\w+)", RegexOptions.IgnoreCase);
-        public bool AddArmorsToMannequin = false;
-        public string MannequinOutfitEID="";
-        public FormKey OutfitPatchedKeyword = FormKey.Null;
         public List<string> Masters = new();
+        public List<string> KeywordsSPID = new();
 
         public Dictionary<string, string> OutfitRegex = new();
+        public Dictionary<string, string> OutfitTypeRegex = new();
         public Dictionary<string, string> ArmorTypeRegex = new();
         public Dictionary<string, string> SkippableRegex = new();
+        public Dictionary<string, string> SkillBasedArmors = new();
 
         public PatcherSettings init() {
-            MannequinOutfitEID = "ZZZ_Mannequins" + this.OutfitSuffix;
             return this;
         }
     }

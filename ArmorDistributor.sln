@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.32014.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArmorDistributor", "ArmorDistributor\ArmorDistributor.csproj", "{FCB156F2-45C1-468B-805C-BBA5CA61F2BC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpers", "Helpers\Helpers.csproj", "{A9E0E061-43EA-454B-904B-55282147FE2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{FCB156F2-45C1-468B-805C-BBA5CA61F2BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FCB156F2-45C1-468B-805C-BBA5CA61F2BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCB156F2-45C1-468B-805C-BBA5CA61F2BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9E0E061-43EA-454B-904B-55282147FE2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9E0E061-43EA-454B-904B-55282147FE2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9E0E061-43EA-454B-904B-55282147FE2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9E0E061-43EA-454B-904B-55282147FE2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

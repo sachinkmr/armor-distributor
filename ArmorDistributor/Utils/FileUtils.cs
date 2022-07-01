@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace ArmorDistributor.Utils
 {
@@ -36,7 +37,7 @@ namespace ArmorDistributor.Utils
 
         public static ISkyrimMod GetIncrementedMod(ISkyrimMod mod, bool forceCreate=false)
         {
-            if (!forceCreate && GetMasters(mod).Count() < 250 && CanESLify(mod))
+            if (!Program.Settings.UserSettings.CreateESLs || (!forceCreate && GetMasters(mod).Count() < 250 && CanESLify(mod)))
                 return mod;
 
             var name = "";
@@ -75,11 +76,14 @@ namespace ArmorDistributor.Utils
         {
             JsonConverter[] converters = new JsonConverter[] {
                 new FormKeyConverter(),
-                new BodySlotConverter()
+                new BodySlotConverter(),
+                new DictionaryConverter()
             };
-            using StreamWriter r = new(filePath);
-            r.Write(JsonConvert.SerializeObject(classInfo, Formatting.Indented, converters));
-            r.Flush();
+            //File.SetAttributes(filePath, FileAttributes.Normal);
+            using (StreamWriter r = File.CreateText(filePath)) {
+                r.Write(JsonConvert.SerializeObject(classInfo, Formatting.Indented, converters));
+                r.Flush();
+            }            
         }
 
         public static void SaveMod(IPatcherState<ISkyrimMod, ISkyrimModGetter> state, ISkyrimMod patch)
@@ -122,6 +126,25 @@ namespace ArmorDistributor.Utils
             //Copy all the files & Replaces any files with the same name
             foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
                 File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
+        }
+
+        public static List<string> GetSPIDKeywords(string path)
+        {
+            HashSet<string> lines = new();
+            HashSet<string> keywrds = new();
+            var regex = @"^Keyword\s*=\s*(.+?)\|";
+            string[] filePaths = Directory.GetFiles(path, "*_DISTR.ini");
+            foreach (string f in filePaths) {
+                File.ReadAllLines(f)
+                    .ForEach(l =>
+                    {
+                        var m = Regex.Match(l.Trim(), regex);
+                        if (m.Success) keywrds.Add(m.Groups[1].Value);
+                    });
+                
+                //lines.UnionWith(ls);    
+            }
+            return keywrds.ToList(); 
         }
     }
 }

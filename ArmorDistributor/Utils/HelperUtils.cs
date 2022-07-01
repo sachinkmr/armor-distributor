@@ -1,12 +1,11 @@
 ﻿using ArmorDistributor.Config;
 using log4net;
-using Mutagen.Bethesda.Plugins.Aspects;
+using Mutagen.Bethesda;
+using Mutagen.Bethesda.Plugins;
 using Mutagen.Bethesda.Skyrim;
-using Newtonsoft.Json.Linq;
 using Noggog;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -27,7 +26,7 @@ namespace ArmorDistributor.Utils
             return (T) Enum.Parse(typeof(T), value, true);
         }
 
-        public static IEnumerable<string> GetRegexBasedGroup(Dictionary<string, string> regx, string str, string? optionalStr = null)
+        public static List<string> GetRegexBasedGroup(Dictionary<string, string> regx, string str, string? optionalStr = null)
         {
             List<string> group = new();
             regx.ForEach(pair =>
@@ -46,7 +45,7 @@ namespace ArmorDistributor.Utils
                      group.Add(pair.Key);
                  }
              });
-            return group.Distinct();
+            return group.Distinct().ToList();
         }
 
         
@@ -82,8 +81,11 @@ namespace ArmorDistributor.Utils
         {
             if (!list.Any()) return new();
             var hash = new HashSet<string>(list.First().Split(' '));
-            for (int i = 1; i < list.Count; i++)
+            for (int i = 1; i < list.Count; i++) {
                 hash.IntersectWith(list[i].Split(' '));
+                if (!hash.Any())
+                    break;
+            }       
             return hash;
         }
 
@@ -105,50 +107,33 @@ namespace ArmorDistributor.Utils
             return Regex.Replace(underscore, "([a-z0-9])([A-Z])", "$1 $2", RegexOptions.Compiled).Trim();
         }
 
-        public static void MergePlugins(string loc, bool show) {
-            JObject data = JObject.Parse(File.ReadAllText(loc));
-            var plugins = data.GetValue("plugins");
-            foreach (var plugin in plugins) {
-                var filename = plugin.Value<string>("filename");
-                var fileLoc = plugin.Value<string>("dataFolder");
+        public static void GiftsOfAkatoshPatcher() {
+            var patchName = "GiftsOfAkatoshPatcher.esp";
+            //var espName = "gifts of akatosh.esp";
+            //ModKey modKey = ModKey.FromNameAndExtension(espName);
+            //var patch = Program.Settings.State.LoadOrder[modKey].Mod;
+            var patch = FileUtils.GetOrAddPatch(patchName);
+            var eff = Program.Settings.State.LoadOrder.PriorityOrder.ObjectEffect().WinningOverrides()
+                .Where(x => x.FormKey.ToString().Contains("gifts of akatosh.esp")
+                        && x.Name.ToString().Contains("Akatosh"));
 
-                var src = show ? Path.Combine(fileLoc, "optional", filename) : Path.Combine(fileLoc, filename);
-                var dest = show ? Path.Combine(fileLoc,filename): Path.Combine(fileLoc, "optional", filename);
-                if (!File.Exists(Path.GetDirectoryName(dest))) Directory.CreateDirectory(Path.GetDirectoryName(dest));
-                try {
-                    if (File.Exists(src)) File.Move(src, dest, true); 
-                } catch (Exception e) {
-                    Logger.ErrorFormat("File: {0} :: {1}",filename,e.Message.ToString());
-                }
-                
-            }
+            eff.GroupBy(x => x.TargetType).ForEach(t =>
+                {
+                    var r = patch.ObjectEffects.DuplicateInAsNewRecord(t.First(), t.First().EditorID+"GOD");
+                    r.Effects.Clear();
+                    var e = t.SelectMany(a => a.Effects).Distinct();
+                    e.ForEach(e => r.Effects.Add(e.DeepCopy()));
+                });
         }
 
-        internal static void UpdateSPIDFile(string mergeMap, List<string> spidINIs, string mergedMod)
+        public static string GetCategories()
         {
-            var trimmer = new Char[] { '0' };
-            JObject data = JObject.Parse(File.ReadAllText(mergeMap));
-            string spid = "";
+            var i = 0;
+            var list = new List<string> { "Generic" }
+            .Concat(Settings.PatcherSettings.OutfitRegex.Keys.OrderBy(x => x))
+            .Select(x=> x+" = "+(i++));
 
-            foreach (var v2 in spidINIs)
-            {
-                var spidLines = File.ReadAllLines(v2);
-                spid = spid + "\n;Merging SPID Records for " + Path.GetFileName(v2) + "\n" + File.ReadAllText(v2);
-                var esps = spidLines.Where(l => l.Contains(".esp|")).Select(line => {
-                    int start = line.IndexOf('~') + 1;
-                    return line.Substring(start, line.IndexOf('|') - start);
-                }).Distinct();
-                esps.ForEach(esp => {
-                    data.GetValue(esp).Select(v => v.ToString().Replace("\"", "").Replace(" ", "").Split(':').Select(a => a.TrimStart(trimmer))).ForEach(v => {
-                        var str1 = "0x" + v.ElementAt(0) + "~" + esp;
-                        var str2 = "0x" + v.ElementAt(1) + "~" + mergedMod;
-                        //spid = spid.Replace(str1, str2);
-                        spid = Regex.Replace(spid, str1, str2, RegexOptions.IgnoreCase);
-                    });
-                });
-            }
-            var file = Path.Combine(Directory.GetParent(Directory.GetParent(mergeMap).FullName).FullName, Path.GetFileNameWithoutExtension(mergedMod) + "_DISTR.ini");
-            File.WriteAllText(file, spid);
+            return string.Join(",\n", list);
         }
     }
 }

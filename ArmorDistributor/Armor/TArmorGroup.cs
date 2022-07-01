@@ -76,14 +76,21 @@ namespace ArmorDistributor.Armor
 
             foreach (var g in armors.Keys)
             {
+                //List<FormLink<IItemGetter>> list = new();
                 foreach (var t in armors[g].Keys)
                 {
-                    string eid = Name + "_" + g + "_" + t;
+                    string eid = Name + "_" + g + "_" + t + "_" + (Program.Settings.UserSettings.CreateOutfitsOnly ? Guid.NewGuid().ToString() : "");
                     Patch = FileUtils.GetIncrementedMod(Patch);
                     var set = armors[g][t].Select(a => a.LLFormKey.AsLink<IItemGetter>());
                     Outfit newOutfit = OutfitUtils.CreateOutfit(Patch, eid, set);
                     GenderOutfit.GetOrAdd(g).Add(t, newOutfit.FormKey);
+                    //list.AddRange(newOutfit.Items.Select(i => i.FormKey.AsLink<IItemGetter>()));
                 }
+
+                //// All outfits
+                //string eidAll = Name + "_" + g + "_ALL_" + (Program.Settings.UserSettings.CreateOutfitsOnly ? Guid.NewGuid().ToString() : "");
+                //Outfit newOutfit1 = OutfitUtils.CreateOutfit(Patch, eidAll, list);
+                //GenderOutfit.GetOrAdd(g).Add(TArmorType.ALL, newOutfit1.FormKey);
             }
             return Patch;
         }
@@ -97,6 +104,11 @@ namespace ArmorDistributor.Armor
         public override int GetHashCode()
         {
             return HashCode.Combine(Name);
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }

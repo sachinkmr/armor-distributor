@@ -21,29 +21,26 @@ namespace ArmorDistributor.Armor
         public string Material { get; }
         public TArmorType Type { get; }
         public string Prefix { get; }
+        public string LoadOrder { get; set; }
 
         public bool hasShield;
         public bool hasHalmet;
 
         public FormKey LLFormKey = FormKey.Null;
 
-        public TArmorSet(TArmor body)
+        public TArmorSet(TArmor body, string material)
         {
             Body = body;
             Armors = new();
             Weapons = new();
-            Material = body.Material;
+            Material = material;
             Type = body.Type;
             Gender = body.Gender;
-            Prefix = Settings.PatcherSettings.LeveledListPrefix + Body.Gender + "_" + Body.EditorID;
+            Prefix = Settings.PatcherSettings.LeveledListPrefix + Body.Gender + "_" + Material + "_"+ Body.EditorID;
+            LoadOrder = "";
             Armors.Add(body);
         }
-
-        public TArmorSet(IArmorGetter body)
-            : this(new TArmor(body))
-        {
-        }
-       
+      
         public void AddArmor(TArmor armor)
         {
             Armors.Add(armor);
@@ -78,6 +75,11 @@ namespace ArmorDistributor.Armor
             ll = OutfitUtils.CreateLeveledList(Patch, items, Prefix, 1, LeveledItem.Flag.UseAll);
             LLFormKey = ll.FormKey;
             return Patch;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0}:{1}:{2}:{3}:{4}", Body.Name, Material, Type, Gender, Armors.Count());
         }
 
         public override bool Equals(object? obj)
@@ -117,12 +119,7 @@ namespace ArmorDistributor.Armor
             else if (addAll || (!matched && bodyCounts < 5)) this.AddWeapons(weapons);
         }
 
-        public void CreateMatchingSetFrom(IEnumerable<IArmorGetter> others, bool addAll, int commonStrCount, int commanEID)
-        {
-            CreateMatchingSetFrom(others.Select(x => new TArmor(x)), addAll, commonStrCount, commanEID);
-        }
-
-        public void CreateMatchingSetFrom(IEnumerable<TArmor> others, bool addAll, int commonName, int commanEID)
+        public void CreateMatchingSetFrom(IEnumerable<TArmor> others, bool addAll, int commonName)
         {
             if (!addAll)
             {
@@ -136,7 +133,7 @@ namespace ArmorDistributor.Armor
                 foreach (var a in others) {
                     // Name based matching
                     var aname = a.Name;
-                    int c = HelperUtils.GetMatchingWordCount(bname, aname, false) - commonName- commanEID;
+                    int c = HelperUtils.GetMatchingWordCount(bname, aname, false) - commonName;
                     if (c > 0) a.BodySlots.ForEach(flag => armors.GetOrAdd(flag).TryAdd(c, a));
                 }
 

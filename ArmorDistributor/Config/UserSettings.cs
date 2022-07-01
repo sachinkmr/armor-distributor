@@ -5,6 +5,10 @@ using Mutagen.Bethesda.WPF.Reflection.Attributes;
 using System.Collections.Generic;
 using System.Linq;
 using log4net;
+using System.IO;
+using ArmorDistributor.Utils;
+using Newtonsoft.Json.Linq;
+using System;
 
 namespace ArmorDistributor.Config
 {
@@ -33,40 +37,22 @@ namespace ArmorDistributor.Config
 
 
         [MaintainOrder]
-        [JsonDiskName("ProcessNPCs")]
-        [SettingName("Process NPCs: ")]
-        [SynthesisTooltip("Use NPC race/name/outfit/faction/class to distribute the outfit")]
-        public bool ProcessNPCs = true;
+        [JsonDiskName("CreateOutfitsOnly")]
+        [SettingName("Create Outfits Only: ")]
+        [SynthesisTooltip("This will only create new outfits and will not assigned to NPC")]
+        public bool CreateOutfitsOnly = false;
 
         [MaintainOrder]
-        [JsonDiskName("NameBasedDistribution")]
-        [SettingName("Name Based Distribution: ")]
-        [SynthesisTooltip("Distribute armors based on the Generic NPC names")]
-        public bool NameBasedDistribution = true;
-
-        [MaintainOrder]
-        [JsonDiskName("RaceBasedDistribution")]
-        [SettingName("Race Based Distribution: ")]
-        [SynthesisTooltip("Distribute armors based on the NPC races")]
-        public bool RaceBasedDistribution = true;
-
-        [MaintainOrder]
-        [JsonDiskName("ClassBasedDistribution")]
-        [SettingName("Class Based Distribution: ")]
-        [SynthesisTooltip("Distribute armors based on the NPC classes")]
-        public bool ClassBasedDistribution = true;
-
-        [MaintainOrder]
-        [JsonDiskName("FactionBasedDistribution")]
-        [SettingName("Faction Based Distribution: ")]
-        [SynthesisTooltip("Distribute armors based on the NPC factions")]
-        public bool FactionBasedDistribution = true;
+        [JsonDiskName("AssignOutfits")]
+        [SettingName("Assign Outfits:")]
+        [SynthesisTooltip("Outfits will be assigned to NPC")]
+        public bool AssignOutfits = true;
 
         [MaintainOrder]
         [JsonDiskName("SkipGuardDistribution")]
         [SettingName("Skip Guard Distribution: ")]
-        [SynthesisTooltip("Distribute armors to the gurads")]
-        public bool SkipGuardDistribution = false;
+        [SynthesisTooltip("Distribute armors to the guards")]
+        public bool SkipGuardDistribution = true;
 
         [MaintainOrder]
         [JsonDiskName("SkipSluttyOutfit")]
@@ -77,20 +63,14 @@ namespace ArmorDistributor.Config
         [MaintainOrder]
         [JsonDiskName("CreateBashPatch")]
         [SettingName("Bash Patch For Leveled Lists: ")]
-        [SynthesisTooltip("Outfits will not be assigned to unique NPCs when seleted")]
+        [SynthesisTooltip("Outfits will not be assigned to unique NPCs when selected")]
         public bool CreateBashPatch = true;
 
         [MaintainOrder]
-        [JsonDiskName("MinimumNpcForOutfit")]
-        [SettingName("Minimum Npcs For Outfit: ")]
-        [SynthesisTooltip("Only outfits assigned to minimum number of NPCs will be patched")]
-        public int MinimumNpcForOutfit = 0;
-
-        [MaintainOrder]
-        [JsonDiskName("PatchNonVanillaOutfits")]
-        [SettingName("Patch Non Vanilla Outfits: ")]
-        [SynthesisTooltip("Outfits from other mods (mods except Skyrim and its DLC) will be patched or modified if checked")]
-        public bool PatchNonVanillaOutfits = false;
+        [JsonDiskName("ResolveOutfitConflicts")]
+        [SettingName("Resolve Outfit Conflicts: ")]
+        [SynthesisTooltip("Resolve outfit conflicts with armor mods.\nUsing this will make sure that outfits from both mods (armor mods and loadorder loosing mod) are shown.")]
+        public bool ResolveOutfitConflicts = true;
 
         [MaintainOrder]
         [JsonDiskName("DistributeWeapons")]
@@ -99,10 +79,22 @@ namespace ArmorDistributor.Config
         public bool DistributeWeapons = true;
 
         [MaintainOrder]
+        [JsonDiskName("CreateESLs")]
+        [SettingName("Create ESLs: ")]
+        [SynthesisTooltip("Generated patches in form of ESLs")]
+        public bool CreateESLs = true;
+
+        [MaintainOrder]
         [JsonDiskName("DumpDebugData")]
         [SettingName("Dump Debug Data: ")]
         [SynthesisTooltip("Data will help in debugging the NPC related information")]
         public bool DumpDebugData = true;
+
+        [MaintainOrder]
+        [JsonDiskName("MinimumNpcForOutfit")]
+        [SettingName("Minimum Npcs For Outfit: ")]
+        [SynthesisTooltip("Only outfits assigned to minimum number of NPCs will be patched")]
+        public int MinimumNpcForOutfit = 0;
 
         [MaintainOrder]
         [JsonDiskName("NPCToSkip")]
@@ -113,78 +105,114 @@ namespace ArmorDistributor.Config
         [MaintainOrder]
         [JsonDiskName("ModsToSkip")]
         [SettingName("Skip Mods: ")]
-        [SynthesisTooltip("Select the mods which you dont want to use in patcher")]
+        [SynthesisTooltip("Select the mods which you don't want to use in patcher or creating issues while patching")]
         public HashSet<ModKey> ModsToSkip = new();
 
         [MaintainOrder]
-        [JsonDiskName("OutfitMods")]
-        [SettingName("NPC mods for patching outfits: ")]
-        [SynthesisTooltip("By default it will add all the mods with NPC records to patch their outfits. \nYou can add/remove the mod to include/exclude the NPC accordingly.")]
-        public List<ModKey> OutfitMods { get; set; } = new();
+        [JsonDiskName("ModsToPatch")]
+        [SettingName("Mods To Patch: ")]
+        [SynthesisTooltip("Select the mods from which NPCs will use new armors")]
+        public HashSet<ModKey> ModsToPatch = new();
+
+        [MaintainOrder]
+        [JsonDiskName("SleepingOutfit")]
+        [SettingName("Sleeping Outfits: ")]
+        [SynthesisTooltip("Select the mods from which NPCs will use new sleeping outfits. \nNote: Only one piece armor will be selected for now. \nHard Requirements: (Sleep Tight SE or Immersive Indoor Attire and Etiquette)")]
+        public HashSet<ModKey> SleepingOutfit = new();
+
+        [Ignore]
+        [MaintainOrder]
+        [JsonDiskName("SwimmingOutfit")]
+        [SettingName("Swimming Outfits: ")]
+        [SynthesisTooltip("Select the mods from which NPCs will use new swimming outfits. \nNote: Only one piece armor will be selected for now. \nHard Requirements: (Immersive Indoor Attire and Etiquette or sleep or swim attire)")]
+        public HashSet<ModKey> SwimmingOutfit = new();
 
         [MaintainOrder]
         [SettingName("Armor Mods: ")]
-        [SynthesisTooltip("Select the armor mods and the outfit catergory.\nIf category is not selected the mod will use Generic Category.\nFor Generic category, outfit will be created based on the armor material type.\n\n" +
+        [SynthesisTooltip("Select the armor mods and the outfit category.\nIf category is not selected the mod will use Generic Category.\nFor Generic category, outfit will be created based on the armor material type.\n\n" +
             "Patcher will try to select some armor mods and assign those categories. \nYou should check this list and make sure everything is correct")]
         public List<ModCategory> PatchableArmorMods = new();
 
-        [MaintainOrder]
-        [SettingName("Categories To Skip: ")]
-        [JsonDiskName("CategoriesToSkip")]
-        [SynthesisTooltip("Patcher will not assign the outfits to the selected categories")]
-        public List<TCategory> CategoriesToSkip { get; set; } = new();
-
         [Ignore]
         [JsonDiskName("ArmorMods")]
-        public Dictionary<string, List<string>>? ArmorMods=new();
+        public Dictionary<string, List<string>>? ArmorMods = new();
 
         public UserSettings()
         {
-            if (Settings.DefaultUserSettings != null) {
-                var order = Program.PatcherEnv.LoadOrder;
-                PatcherPrefix = Settings.PatcherSettings.PatcherPrefix;
-                
-                // Mods to Skip
-                if (ModsToSkip == null || !ModsToSkip.Any()) {
-                    ModsToSkip = Settings.DefaultUserSettings.ModsToSkip
-                        .Where(x=>order.ContainsKey(x)).ToHashSet();
-                }
+            string exeLoc = Directory.GetParent(System.Reflection.Assembly.GetAssembly(typeof(UserSettings)).Location).FullName;
+            string ConfigFile = Path.Combine(exeLoc, "data", "config", "UserSettings.json");
+            JObject data = JObject.Parse(File.ReadAllText(ConfigFile));
 
-                // Outfit mods
-                if (OutfitMods == null || !OutfitMods.Any())
+            //if (Settings.DefaultUserSettings != null) {
+            var order = Program.PatcherEnv.LoadOrder;
+            if (PatcherPrefix == string.Empty)
+                PatcherPrefix = data["PatcherPrefix"].ToString();
+            Settings.PatcherSettings.PatcherPrefix = PatcherPrefix;
+
+            // Mods to Skip
+            if (ModsToSkip == null || !ModsToSkip.Any())
+                ModsToSkip = data["ModsToSkip"]
+                    .Select(x => ModKey.FromNameAndExtension(x.ToString()))
+                    .Where(x => order.ContainsKey(x))
+                    .ToHashSet();
+
+            // Swimming Outfit
+            if (SwimmingOutfit == null || !SwimmingOutfit.Any())
+                SwimmingOutfit = data["SwimmingOutfit"]
+                    .Select(x => ModKey.FromNameAndExtension(x.ToString()))
+                    .Where(x => order.ContainsKey(x))
+                    .ToHashSet();
+
+            // Sleeping Outfit
+            if (SleepingOutfit == null || !SleepingOutfit.Any())
+                SleepingOutfit = data["SleepingOutfit"]
+                    .Select(x => ModKey.FromNameAndExtension(x.ToString()))
+                    .Where(x => order.ContainsKey(x))
+                    .ToHashSet();
+
+
+            // NPCs to Skip
+            if (NPCToSkip == null || !NPCToSkip.Any())
+                NPCToSkip = data["NPCToSkip"]
+                    .Select(x => FormKey.Factory(x.ToString())).ToHashSet();
+
+
+            // Outfit Mods to Patch
+            if (ModsToPatch == null || !ModsToPatch.Any())
+            {
+                ModsToPatch = data["ModsToPatch"]
+                    .Select(x => ModKey.FromNameAndExtension(x.ToString()))
+                    .Where(x => order.ContainsKey(x) && !ModsToSkip.Contains(x))
+                    .ToHashSet();
+                ModsToPatch = ModsToPatch.Any() ? ModsToPatch : order.PriorityOrder
+                .Where(x => x.Mod != null && (x.Mod.Npcs.Any() || x.Mod.Outfits.Any()))
+                .Select(x => x.ModKey)
+                .ToHashSet();
+            }
+
+            // Armor Mods
+            if (PatchableArmorMods == null || !PatchableArmorMods.Any())
+            {
+                var mods = data["ArmorMods"].ToObject<Dictionary<string, List<string>>>();
+                foreach (var pair in mods)
                 {
-                    Logger.DebugFormat("Loading NPCs mods for outfits... ");
-                    OutfitMods = order.PriorityOrder
-                    .Where(x => !ModsToSkip.Contains(x.ModKey) && x.Mod!=null && x.Mod.Npcs.Any())
-                    .Select(x => x.ModKey)
-                    .ToList();
-                }
-                if (OutfitMods == null || !OutfitMods.Any())
-                    OutfitMods = order.Select(x => x.Key).ToList();
-
-                    // Armor Mods
-                    if (PatchableArmorMods == null || !PatchableArmorMods.Any())
-                    PatchableArmorMods = Settings.DefaultUserSettings.PatchableArmorMods
-                        .Where(a=> Program.PatcherEnv.LoadOrder[a.ArmorMod].Mod.Armors.Any())
-                        .ToList();
-
-                PatchableArmorMods.ForEach(mc =>
-                {
-                    ArmorMods.GetOrAdd(mc.ArmorMod.FileName).AddRange(mc.Categories.Select(x => x.ToString()));
-                });
-
-                // Armor Categories to skip
-                if (CategoriesToSkip == null || !CategoriesToSkip.Any()) {
-                    CategoriesToSkip = Settings.DefaultUserSettings.CategoriesToSkip;
-                }
-
-                if (!ProcessNPCs) {
-                    RaceBasedDistribution = false;
-                    NameBasedDistribution = false;
-                    ClassBasedDistribution = false;
-                    FactionBasedDistribution = false;
+                    if (ModKey.TryFromNameAndExtension(pair.Key, out var modKey) && Program.PatcherEnv.LoadOrder.ContainsKey(modKey))
+                    {
+                        List<TCategory> cats = new();
+                        pair.Value.ForEach(c =>
+                        {
+                            if (Enum.TryParse(c, out TCategory cat)) cats.Add(cat);
+                        });
+                        var item = new ModCategory(modKey, cats);
+                        PatchableArmorMods.Add(item);
+                    }
                 }
             }
+            PatchableArmorMods.ForEach(mc =>
+            {
+                ArmorMods.GetOrAdd(mc.ArmorMod.FileName)
+                .AddRange(mc.Categories.Select(x => x.ToString()).Distinct());
+            });
         }
     }
 }

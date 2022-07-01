@@ -20,7 +20,7 @@ namespace ArmorDistributor
         public NpcKeyword(ISkyrimMod Patch, string key)
         {
             Name = key;
-            Keyword = "ADPType" + key;
+            Keyword = "AADPType" + key;
             var keyword = Patch.Keywords.AddNew(Keyword);            
             FormKey = keyword.FormKey;
         }
